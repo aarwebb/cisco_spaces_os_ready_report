@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cisco Spaces OS Ready Report</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="popup-body">
+    <div class="popup-container">
+      <div class="header">
+        <div class="logo-container">
+          <img src="OS_Ready_Headline.png" alt="Cisco Spaces OS Ready" class="popup-logo" />
+        </div>
+      </div>
+
+      <div id="message" class="message"></div>
+      <div id="errorContainer"></div>
+
+      <div class="button-container">
+        <button id="generateReport">Generate Report</button>
+        <button id="cisco-view-report">View Report</button>
+      </div>
+
+      <!-- Progress is now only shown in the main page via ProgressManager -->
+
+      <!-- Debug toggle moved to bottom -->
+      <div class="debug-toggle">
+        <label for="debugToggle">Debug</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="debugToggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Enabled Checks section (hidden by default) -->
+      <div id="enabledChecksContainer" class="enabled-checks-container" style="display: none;">
+        <div class="enabled-checks-header">
+          <strong>Enabled Checks</strong>
+        </div>
+        <div id="enabledChecksList" class="enabled-checks-list">
+          <!-- Check toggles will be dynamically populated here -->
+        </div>
+      </div>
+    </div>
+
+    <script src="checks/config.js"></script>
+    <script src="constants.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

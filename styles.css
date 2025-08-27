@@ -1,0 +1,1310 @@
+/* ==========================================================================
+   Cisco Spaces OS Ready Report - Shared Styles
+   Based on Cisco Spaces Dashboard 2.0 Design System
+   ========================================================================== */
+
+/* ==========================================================================
+   Variables and Base Styles
+   ========================================================================== */
+
+:root {
+  /* Colors - Updated to match OS_Ready_Headline.png */
+  --color-background: #F7F7F7;
+  --color-card: #FFFFFF;
+  --color-primary: #1C3D59; /* Dark navy blue from OS Ready logo */
+  --color-primary-hover: #15304A; /* Darker shade for hover */
+  --color-success: #28A745; /* More muted professional green */
+  --color-success-hover: #218838; /* Darker green for hover */
+  --color-text-primary: #333333;
+  --color-text-secondary: #666666;
+  --color-border: #E0E0E0;
+  --color-border-light: #F0F0F0;
+  
+  /* Status Colors */
+  --color-success-bg: #D4EDDA; /* Light green background to match new green */
+  --color-success-text: #155724; /* Darker green text */
+  --color-success-border: #C3E6CB; /* Green border */
+  --color-error-bg: #F8D7DA;
+  --color-error-text: #721C24;
+  --color-error-border: #F5C6CB;
+  --color-warning-bg: #FFF3CD;
+  --color-warning-text: #856404;
+  --color-info-bg: #E8F2F7; /* Light blue background to match new primary */
+  --color-info-text: #1C3D59; /* Dark blue text */
+  --color-info-border: #B8D4E3; /* Blue border */
+  
+  /* OS Ready Specific Colors (matching the logo) */
+  --color-os-ready-navy: #1C3D59; /* Dark navy from logo background */
+  --color-os-ready-green: #00C851; /* Bright green from OS Ready badge */
+  --color-cisco-spaces-blue: #1C3D59; /* Cisco Spaces brand blue */
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-xxl: 24px;
+  --spacing-xxxl: 32px;
+  
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  
+  /* Shadows */
+  --shadow-subtle: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.15);
+  
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-xxl: 24px;
+  --font-size-xxxl: 32px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
+
+/* ==========================================================================
+   Base Typography and Layout
+   ========================================================================== */
+
+body {
+  font-family: var(--font-family);
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-subtle);
+  border: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   Headers and Typography
+   ========================================================================== */
+
+.header {
+  text-align: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+}
+
+.header h1,
+.header h2 {
+  margin: 0;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.25px;
+}
+
+.header h1 {
+  font-size: var(--font-size-xxxl);
+}
+
+.header h2 {
+  font-size: var(--font-size-xl);
+}
+
+.header .subtitle,
+.header p {
+  margin: var(--spacing-xs) 0 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+}
+
+.section-title {
+  color: var(--color-primary);
+  font-size: var(--font-size-xxl);
+  margin: 0 0 var(--spacing-xl) 0;
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  font-weight: var(--font-weight-bold);
+}
+
+.subsection-title {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xl);
+  margin: 0 0 var(--spacing-lg) 0;
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+button,
+.action-btn {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  transition: all 0.2s ease;
+  font-family: inherit;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* Popup buttons (full width) */
+.button-container button {
+  width: 100%;
+  margin: var(--spacing-sm) 0;
+}
+
+/* Action buttons (inline) */
+.action-btn {
+  padding: var(--spacing-md) var(--spacing-xxl);
+}
+
+.action-btn:hover,
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-hover);
+}
+
+.action-btn:active,
+button:active {
+  transform: translateY(0);
+}
+
+/* Button Variants */
+.btn-primary,
+#generateReport {
+  background: var(--color-primary);
+  color: var(--color-card);
+}
+
+.btn-primary:hover,
+#generateReport:hover {
+  background: var(--color-primary-hover);
+}
+
+.btn-secondary,
+#clearProgress {
+  background: var(--color-card);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover,
+#clearProgress:hover {
+  background: var(--color-background);
+}
+
+.btn-success,
+#viewReport,
+#cisco-view-report {
+  background: var(--color-success);
+  color: var(--color-card);
+}
+
+.btn-success:hover,
+#viewReport:hover,
+#cisco-view-report:hover {
+  background: var(--color-success-hover);
+}
+
+/* Disabled States */
+button:disabled {
+  background: var(--color-border);
+  color: #999999;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Generating State */
+#generateReport.generating {
+  background: var(--color-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+#generateReport.generating::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* ==========================================================================
+   Cards and Sections
+   ========================================================================== */
+
+.section {
+  margin: var(--spacing-xxxl) 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  background: var(--color-card);
+  padding: var(--spacing-xxl);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-subtle);
+  border: 1px solid var(--color-border);
+}
+
+.subsection {
+  margin: var(--spacing-xxl) 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  background: var(--color-background);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+/* ==========================================================================
+   Progress Components
+   ========================================================================== */
+
+.progress-container {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-lg);
+  display: none;
+  max-height: 350px;
+  overflow-y: auto;
+  box-shadow: var(--shadow-subtle);
+}
+
+.progress-header {
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: var(--spacing-md);
+}
+
+.progress-title {
+  margin: 0 0 var(--spacing-sm) 0;
+  font-size: var(--spacing-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.progress-status {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.progress-status.idle {
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+}
+
+.progress-status.in_progress {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+
+.progress-status.completed {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+.progress-status.error {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+}
+
+.progress-steps {
+  margin-top: var(--spacing-lg);
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-border-light);
+  font-size: var(--font-size-sm);
+  transition: all 0.2s ease;
+}
+
+.progress-step:last-child {
+  border-bottom: none;
+}
+
+.progress-step:hover {
+  background: var(--color-background);
+  border-radius: var(--radius-sm);
+  padding-left: var(--spacing-sm);
+  padding-right: var(--spacing-sm);
+}
+
+.step-title {
+  flex: 1;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.step-status {
+  margin-left: var(--spacing-md);
+  font-size: var(--font-size-base);
+}
+
+.step-details {
+  width: 100%;
+  margin-top: var(--spacing-xs);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+.current-status {
+  margin-top: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background: var(--color-background);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-primary);
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+
+.report-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: var(--spacing-lg) 0;
+  background: var(--color-card);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.report-table th,
+.report-table td {
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-align: left;
+}
+
+.report-table th {
+  background: var(--color-primary);
+  color: var(--color-card);
+  font-weight: var(--font-weight-semibold);
+  width: 25%;
+  font-size: var(--font-size-sm);
+}
+
+.report-table td {
+  width: 75%;
+  color: var(--color-text-primary);
+  background: var(--color-card);
+}
+
+.report-table tr:nth-child(even) td {
+  background: var(--color-background);
+}
+
+.report-table tr:hover td {
+  background: var(--color-info-bg);
+  transition: background-color 0.2s ease;
+}
+
+/* ==========================================================================
+   Messages and Alerts
+   ========================================================================== */
+
+.message {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  margin: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  display: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.message.success {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border: 1px solid var(--color-success-border);
+}
+
+.message.error,
+.error-message {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  border: 1px solid var(--color-error-border);
+}
+
+.error-message {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  margin: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.message.info {
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+  border: 1px solid var(--color-info-border);
+}
+
+#errorContainer {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-xxl) 0;
+  display: none;
+  text-align: center;
+  font-weight: var(--font-weight-medium);
+  border: 1px solid var(--color-error-border);
+}
+
+/* ==========================================================================
+   Form Controls
+   ========================================================================== */
+
+.debug-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--spacing-lg);
+  padding: var(--spacing-md);
+  background: var(--color-background);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border);
+}
+
+.debug-toggle label {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  margin: 0;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #CCC;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--color-card);
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+input:checked + .toggle-slider {
+  background: var(--color-primary);
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+/* ==========================================================================
+   Enabled Checks Section
+   ========================================================================== */
+
+.enabled-checks-container {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+.enabled-checks-header {
+  font-size: 11px;
+  font-weight: bold;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.enabled-checks-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-xs) 0;
+}
+
+.check-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  margin: 0;
+  flex: 1;
+  font-weight: var(--font-weight-normal);
+}
+
+.check-toggle {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+}
+
+.check-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.check-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #CCC;
+  transition: 0.3s;
+  border-radius: 18px;
+}
+
+.check-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--color-card);
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.check-toggle input:checked + .check-toggle-slider {
+  background: var(--color-success);
+}
+
+.check-toggle input:checked + .check-toggle-slider:before {
+  transform: translateX(14px);
+}
+
+/* ==========================================================================
+   Loading States
+   ========================================================================== */
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: var(--color-background);
+  border-radius: var(--radius-sm);
+  margin: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  border: 1px solid var(--color-border);
+}
+
+.spinner {
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  border-top: 2px solid var(--color-primary);
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading::after {
+  content: '...';
+  animation: dots 2s infinite;
+}
+
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+  100% { content: '...'; }
+}
+
+/* ==========================================================================
+   Metadata and Information
+   ========================================================================== */
+
+.metadata {
+  margin-top: 48px;
+  padding: var(--spacing-xxl);
+  background: var(--color-background);
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--color-primary);
+  page-break-inside: avoid;
+  break-inside: avoid;
+  display: block;
+  border: 1px solid var(--color-border);
+}
+
+.metadata-title {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin: 0 0 var(--spacing-md) 0;
+  font-size: var(--font-size-lg);
+}
+
+.metadata-content {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  font-weight: var(--font-weight-normal);
+}
+
+/* ==========================================================================
+   Actions and Controls
+   ========================================================================== */
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-md);
+  margin: var(--spacing-xxl) 0;
+  flex-wrap: wrap;
+}
+
+.button-container {
+  padding: var(--spacing-xl);
+  background: var(--color-card);
+}
+
+.logo-container {
+  text-align: center;
+  margin: 0 auto;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo-container img {
+  max-width: none;
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+/* Popup logo container - no margins, full stretch */
+.popup-body .logo-container {
+  margin: 0;
+  width: 100%;
+  display: block;
+}
+
+/* Report logo container - match the effective content width */
+.report-body .logo-container {
+  margin: 0 auto;
+  padding: 0;
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.report-body .logo-container img {
+  width: calc(100% - (2 * var(--spacing-xxxl)));
+  max-width: none;
+  height: auto;
+  display: block;
+}
+
+/* Popup-specific logo styling - full stretch, no borders */
+.popup-logo {
+  max-width: none !important;
+  width: 100% !important;
+  height: auto;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+/* Report-specific logo styling */
+.report-logo {
+  max-width: 80% !important;
+  width: 80%;
+  height: auto;
+  display: block;
+}
+
+/* Header adjustments for logo-only display */
+.popup-body .header {
+  padding: 0;
+  border-bottom: none;
+  background: transparent;
+}
+
+.report-body .header {
+  padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-lg) var(--spacing-xl);
+  border-bottom: none;
+}
+
+/* ==========================================================================
+   Popup-Specific Styles
+   ========================================================================== */
+
+.popup-body {
+  width: 360px;
+  min-height: 500px;
+  max-width: 420px;
+}
+
+.popup-container {
+  padding: 0;
+  background: var(--color-background);
+}
+
+/* ==========================================================================
+   Report-Specific Styles
+   ========================================================================== */
+
+.report-body {
+  padding: var(--spacing-xxl);
+  min-height: 100vh;
+}
+
+.report-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Add padding to content areas but NOT header - let header span full width */
+.report-container .actions,
+.report-container #message,
+.report-container #errorContainer,
+.report-container .loading,
+.report-container #reportContainer {
+  padding: 0 var(--spacing-xxxl);
+}
+
+/* Ensure actions section has proper top margin */
+.report-container .actions {
+  margin-top: var(--spacing-xl);
+}
+
+#reportContainer {
+  display: none;
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+  .actions { display: none; }
+  .container {
+    box-shadow: none;
+    max-width: none;
+    margin: 0;
+    padding: 15px;
+    background: var(--color-card);
+    border: none;
+  }
+  body {
+    background: var(--color-card);
+    margin: 0;
+    padding: 0;
+  }
+  .section {
+    page-break-inside: avoid;
+    background: var(--color-card);
+    box-shadow: none;
+    border: 1px solid var(--color-border);
+  }
+  .subsection {
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+  }
+  .section-title, .subsection-title {
+    page-break-after: avoid;
+    break-after: avoid;
+    color: var(--color-primary) !important;
+  }
+  .report-table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid var(--color-border);
+  }
+  .report-table th {
+    background: var(--color-primary) !important;
+    color: var(--color-card) !important;
+  }
+  .metadata {
+    page-break-before: auto;
+    break-before: auto;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    background: var(--color-background);
+    border: 1px solid var(--color-border);
+  }
+  h1 {
+    color: var(--color-primary) !important;
+  }
+  .header {
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
+/* ==========================================================================
+   Progress Manager (Dynamic UI Components)
+   ========================================================================== */
+
+.progress-manager-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+}
+
+.progress-manager-box {
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: var(--spacing-xxl);
+  min-width: 400px;
+  max-width: 500px;
+  border: 1px solid var(--color-border);
+}
+
+.progress-manager-header {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-primary);
+  font-size: var(--font-size-lg);
+  position: relative;
+  font-weight: var(--font-weight-bold);
+}
+
+.progress-manager-close {
+  position: absolute;
+  top: -5px;
+  right: 0;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.progress-manager-close:hover {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+.progress-manager-bar-container {
+  background: var(--color-background);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-md);
+  height: 20px;
+  overflow: hidden;
+}
+
+.progress-manager-bar {
+  background: var(--color-primary);
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.progress-manager-status {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.progress-manager-steps {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.progress-manager-controls {
+  margin-top: var(--spacing-md);
+  text-align: center;
+}
+
+.progress-manager-view-btn {
+  background: var(--color-success);
+  color: var(--color-card);
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: var(--font-weight-semibold);
+  transition: all 0.2s ease;
+  margin: 0 var(--spacing-xs);
+}
+
+.progress-manager-view-btn:hover:not(:disabled) {
+  background: var(--color-success-hover);
+  transform: translateY(-1px);
+}
+
+.progress-manager-view-btn:disabled {
+  background: var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+}
+
+/* Results Container */
+.results-manager-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+}
+
+.results-manager-box {
+  background: var(--color-card);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  padding: var(--spacing-xxl);
+  min-width: 400px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+}
+
+.results-manager-header {
+  margin-bottom: var(--spacing-md);
+  color: var(--color-success);
+  font-size: var(--font-size-lg);
+  position: relative;
+  font-weight: var(--font-weight-bold);
+}
+
+.results-manager-content {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-lg);
+}
+
+.results-manager-controls {
+  margin-top: var(--spacing-md);
+  text-align: center;
+}
+
+/* ==========================================================================
+   Responsive Design
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .report-container {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg);
+    border-radius: var(--spacing-md);
+  }
+  .actions {
+    justify-content: center;
+    flex-direction: column;
+  }
+  .action-btn {
+    width: 100%;
+    margin: var(--spacing-xs) 0;
+  }
+  .logo-container img {
+    max-width: 80%;
+  }
+  .report-table th,
+  .report-table td {
+    padding: var(--spacing-md) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+  .section {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg) 0;
+  }
+  .subsection {
+    padding: var(--spacing-md);
+  }
+  .header h1 {
+    font-size: var(--font-size-xxl);
+  }
+  .section-title {
+    font-size: var(--spacing-xl);
+  }
+  .subsection-title {
+    font-size: var(--font-size-lg);
+  }
+}
+
+/* ==========================================================================
+   Progress Manager Extended UI Components
+   ========================================================================== */
+
+/* Progress Manager Results UI */
+.progress-manager-results-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 400px;
+    max-height: 500px;
+    background: white;
+    border: 2px solid var(--color-success);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 15px;
+    z-index: 10000;
+    font-family: var(--font-family);
+    font-size: 14px;
+    overflow-y: auto;
+    display: none;
+}
+
+.progress-manager-results-container .results-header {
+    color: var(--color-success);
+}
+
+.progress-manager-results-content {
+    font-size: 12px;
+    color: var(--color-text);
+}
+
+.progress-manager-toggle-btn {
+    padding: 5px 10px;
+    margin-right: 5px;
+    background: var(--color-light);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--color-text);
+    font-family: var(--font-family);
+}
+
+.progress-manager-toggle-btn:hover {
+    background: var(--color-muted);
+}
+
+/* Progress Steps */
+.progress-manager-step {
+    margin: 2px 0;
+    color: var(--color-text);
+}
+
+/* Results Display */
+.results-item {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: var(--color-light);
+    border-radius: 4px;
+}
+
+.results-item-title {
+    color: var(--color-primary);
+    font-weight: bold;
+}
+
+/* Reset Button */
+.reset-navigation-btn {
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: var(--font-family);
+}
+
+.reset-navigation-btn:hover {
+    background: var(--color-primary-dark);
+}
+
+/* Status colors */
+.status-error {
+    color: var(--color-danger) !important;
+}
+
+.status-success {
+    color: var(--color-success) !important;
+}
+
+.status-success-text {
+    color: var(--color-success);
+    font-weight: bold;
+}
+
+/* View Report Button States */
+.progress-manager-view-btn:not(:disabled) {
+    background: var(--color-success) !important;
+    cursor: pointer !important;
+    color: white !important;
+}
+
+.progress-manager-view-btn:not(:disabled):hover {
+    background: var(--color-success-dark) !important;
+}
+
+/* Display utilities */
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+/* ==========================================================================
+   Print Styles for PDF Generation
+   ========================================================================== */
+
+@media print {
+  /* Hide buttons and non-printable elements */
+  .actions,
+  .action-btn,
+  .btn,
+  button {
+    display: none !important;
+  }
+  
+  /* Page break controls */
+  .section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .subsection {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .report-table,
+  table {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  
+  .metadata {
+    page-break-before: auto;
+    break-before: auto;
+  }
+  
+  /* Ensure proper spacing and layout */
+  .report-container {
+    max-width: none;
+    margin: 0;
+    padding: var(--spacing-md);
+    background: white;
+  }
+  
+  /* Remove shadows and borders that don't print well */
+  .section,
+  .subsection,
+  .report-table {
+    box-shadow: none;
+    border: 1px solid var(--color-border);
+  }
+}
+
+/* PDF-specific classes that can be applied during generation */
+.pdf-hide {
+  display: none !important;
+}
+
+.pdf-page-break {
+  page-break-before: always;
+  break-before: page;
+}
+
+.pdf-no-break {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}

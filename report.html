@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cisco Spaces OS Ready Report</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="report-body">
+    <div class="report-container">
+      <div class="header">
+        <div class="logo-container">
+          <img src="OS_Ready_Headline.png" alt="Cisco Spaces OS Ready" class="report-logo" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="exportPdf" class="action-btn btn-success">Export PDF</button>
+        <button id="exportJson" class="action-btn btn-primary">Export JSON</button>
+      </div>
+
+      <div id="message" class="message"></div>
+      <div id="errorContainer" style="display: none;">
+        <div class="section">
+          <p>Unable to load report data. Please ensure you have generated a report first.</p>
+        </div>
+      </div>
+
+      <div class="loading" id="loadingIndicator">
+        <div class="spinner"></div>
+        Loading report data
+      </div>
+
+      <div id="reportContainer">
+        <!-- Dynamic content will be inserted here by the modular report generator -->
+      </div>
+    </div>
+
+    <!-- Include configuration and check files for their report modules -->
+    <script src="checks/config.js"></script>
+    <script src="checks/account.js"></script>
+    <script src="checks/location.js"></script>
+    <script src="checks/wireless.js"></script>
+    <script src="checks/connectors.js"></script>
+    <script src="checks/integrations.js"></script>
+    
+    <!-- Include PDF export libraries -->
+    <script src="libs/html2canvas.min.js"></script>
+    <script src="libs/jspdf.umd.min.js"></script>
+    
+    <!-- Include the modular report generator -->
+    <script src="report.js"></script>
+  </body>
+</html>
