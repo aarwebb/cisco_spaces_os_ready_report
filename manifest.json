@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Cisco Spaces OS Ready Report",
-  "version": "1.0",
-  "description": "Generate OS Ready reports for Cisco Spaces",
+  "name": "Spaces OS Ready Report v2 (API-Powered)",
+  "version": "2.0.1",
+  "description": "Next-generation OS readiness reports for Cisco Spaces using direct API calls for faster, more reliable data collection.",
   "permissions": [
-    "scripting",
-    "tabs",
+    "cookies",
     "storage",
-    "cookies"
+    "activeTab",
+    "scripting",
+    "tabs"
   ],
   "host_permissions": [
     "https://*.dnaspaces.io/*",
@@ -17,62 +18,19 @@
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://*.dnaspaces.io/*",
-        "https://*.dnaspaces.eu/*",
-        "https://*.dnaspaces.sg/*"
-      ],
-      "js": [
-        "constants.js",
-        "utils.js",
-        "progress.js",
-        "navigation.js",
-        "checks/config.js",
-        "checks/account.js",
-        "checks/location.js",
-        "checks/wireless.js",
-        "checks/connectors.js",
-        "checks/integrations.js",
-        "content.js"
-      ],
-      "run_at": "document_end"
-    }
-  ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Cisco Spaces OS Ready Report",
+    "default_title": "Cisco Spaces OS Ready Report v2 (API-Powered)",
     "default_icon": {
       "16": "icons/icon16.png",
-      "24": "icons/icon32.png",
       "32": "icons/icon32.png",
       "48": "icons/icon48.png",
-      "64": "icons/icon64.png",
-      "128": "icons/icon128.png",
-      "256": "icons/icon256.png"
+      "128": "icons/icon128.png"
     }
   },
   "icons": {
     "16": "icons/icon16.png",
-    "24": "icons/icon32.png",
-    "32": "icons/icon32.png",
     "48": "icons/icon48.png",
-    "64": "icons/icon64.png",
-    "128": "icons/icon128.png",
-    "256": "icons/icon256.png"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "libs/html2canvas.min.js",
-        "libs/jspdf.umd.min.js"
-      ],
-      "matches": [
-        "https://*.dnaspaces.io/*",
-        "https://*.dnaspaces.eu/*",
-        "https://*.dnaspaces.sg/*"
-      ]
-    }
-  ]
+    "128": "icons/icon128.png"
+  }
 }

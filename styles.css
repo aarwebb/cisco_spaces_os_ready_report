@@ -742,6 +742,7 @@ input:checked + .toggle-slider:before {
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 .logo-container img {
@@ -754,11 +755,36 @@ input:checked + .toggle-slider:before {
   border: none;
 }
 
+.version-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--color-os-ready-green);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
 /* Popup logo container - no margins, full stretch */
 .popup-body .logo-container {
   margin: 0;
   width: 100%;
   display: block;
+  position: relative;
+  overflow: hidden; /* Ensure badge doesn't cause overflow */
+}
+
+/* Version badge adjustments for popup */
+.popup-body .version-badge {
+  top: 4px;
+  right: 4px;
+  font-size: 9px;
+  padding: 1px 4px;
 }
 
 /* Report logo container - match the effective content width */
@@ -1307,4 +1333,166 @@ input:checked + .toggle-slider:before {
 .pdf-no-break {
   page-break-inside: avoid;
   break-inside: avoid;
+}
+
+/* ==========================================================================
+   Integration Health Display Styles
+   ========================================================================== */
+
+.health-overview {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+}
+
+.health-score {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--border-radius);
+  font-weight: 600;
+}
+
+.health-score.success {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  border: 1px solid var(--color-success-border);
+}
+
+.health-score.warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  border: 1px solid var(--color-warning-border);
+}
+
+.health-score.error {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  border: 1px solid var(--color-error-border);
+}
+
+.health-icon {
+  font-size: 1.2em;
+}
+
+.health-percentage {
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+.health-label {
+  font-size: 0.9em;
+  opacity: 0.8;
+}
+
+.health-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  color: var(--color-text-secondary);
+  font-size: 0.9em;
+}
+
+.warning-count {
+  color: var(--color-warning-text);
+  font-weight: 500;
+}
+
+/* Table cell styling for integration status */
+.report-table td.success {
+  color: var(--color-success-text);
+  font-weight: 500;
+}
+
+.report-table td.warning {
+  color: var(--color-warning-text);
+  font-weight: 500;
+}
+
+.report-table td.error {
+  color: var(--color-error-text);
+  font-weight: 500;
+}
+
+.report-table td.neutral {
+  color: var(--color-text-secondary);
+}
+
+.url-cell {
+  font-family: monospace;
+  font-size: 0.85em;
+  word-break: break-all;
+  max-width: 200px;
+}
+
+/* Row styling for warnings and errors */
+.error-row {
+  background-color: var(--color-error-bg);
+}
+
+.warning-row {
+  background-color: var(--color-warning-bg);
+}
+
+/* Success message styling */
+.success-message {
+  background: var(--color-success-bg);
+  border: 1px solid var(--color-success-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-lg) 0;
+}
+
+.success-message h3 {
+  color: var(--color-success-text);
+  margin-top: 0;
+}
+
+.success-message p {
+  color: var(--color-success-text);
+  margin-bottom: 0;
+}
+
+/* API Summary collapsible section */
+.api-summary {
+  margin-top: var(--spacing-xl);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+}
+
+.api-summary summary {
+  background: var(--color-background);
+  padding: var(--spacing-md) var(--spacing-lg);
+  cursor: pointer;
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 500;
+}
+
+.api-summary summary:hover {
+  background: var(--color-border-light);
+}
+
+.api-summary .report-table {
+  margin: 0;
+  border: none;
+}
+
+/* Responsive adjustments for health overview */
+@media (max-width: 768px) {
+  .health-overview {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .health-score {
+    align-self: stretch;
+    justify-content: center;
+  }
 }
