@@ -2,6 +2,8 @@
 // This file serves as the interface/orchestrator for generating reports
 // Individual check modules handle their own HTML generation and data processing
 
+console.log('REPORT DEBUG: report.js file loaded');
+
 class ModularReportGenerator {
   constructor() {
     this.collectedData = {};
@@ -15,12 +17,20 @@ class ModularReportGenerator {
     this.initializeButtons();
     
     try {
-      const result = await chrome.storage.local.get(['reportData']);
-      this.collectedData = result.reportData || {};
+      const result = await chrome.storage.local.get(['reportData', 'collectionResults']);
+      console.log(' Raw storage result:', result);
+      console.log(' reportData:', result.reportData);
+      console.log(' collectionResults:', result.collectionResults);
+      
+      // Handle both v1 format (reportData) and v2 format (collectionResults)
+      this.collectedData = result.reportData || result.collectionResults || {};
+      console.log(' Final collectedData:', this.collectedData);
+      console.log(' collectedData keys:', Object.keys(this.collectedData));
       
       if (Object.keys(this.collectedData).length > 0) {
         await this.generateReport();
       } else {
+        console.log(' No data found in storage');
         this.displayNoDataMessage();
       }
     } catch (error) {
@@ -65,9 +75,32 @@ class ModularReportGenerator {
   }
 
   generateMetadata() {
-    const reportGenerated = this.collectedData['Report Generated'] || new Date().toLocaleString();
-    const executionTime = this.collectedData['Execution Time'] || 'N/A';
-    const domain = this.collectedData['Account Domain'] || this.collectedData['Domain'] || 'N/A';
+    // For v2, try to extract metadata from collection status or generate current info
+    let reportGenerated = new Date().toLocaleString();
+    let executionTime = 'N/A';
+    let domain = 'N/A';
+    
+    // Try to get metadata from v2 collection status
+    chrome.storage.local.get(['collectionStatus'], (result) => {
+      if (result.collectionStatus) {
+        const status = result.collectionStatus;
+        if (status.startTime && status.endTime) {
+          reportGenerated = new Date(status.endTime).toLocaleString();
+          executionTime = `${((status.endTime - status.startTime) / 1000).toFixed(2)}s`;
+        }
+        if (status.domain) {
+          domain = status.domain;
+        }
+      }
+    });
+    
+    // Try to extract domain from account data if available
+    if (this.collectedData.account && this.collectedData.account.success) {
+      const accountSummary = this.collectedData.account.data?.summary;
+      if (accountSummary?.accountDomain) {
+        domain = accountSummary.accountDomain;
+      }
+    }
     
     return `
       <div class="metadata">
@@ -76,6 +109,7 @@ class ModularReportGenerator {
           <div>Generated: ${reportGenerated}</div>
           <div>Execution Time: ${executionTime}</div>
           <div>Domain: ${domain}</div>
+          <div>Version: v2.0.0 (API-based)</div>
         </div>
       </div>
     `;
@@ -84,8 +118,7 @@ class ModularReportGenerator {
   async generateSections() {
     const sections = [];
     
-    // Get all checks with reports (regardless of current enabled status)
-    // and filter by whether we actually have data for them
+    // Get all checks with reports
     const allChecksWithReports = globalThis.REPORT_CHECKS
       ? globalThis.REPORT_CHECKS
           .filter(check => check.hasReport)
@@ -93,68 +126,67 @@ class ModularReportGenerator {
       : [];
     
     console.log('All possible checks with reports:', allChecksWithReports.map(c => c.name));
+    console.log('Available collected data keys:', Object.keys(this.collectedData));
     
-    // Filter to only include checks where we have collected data
-    const checksWithData = [];
     for (const checkConfig of allChecksWithReports) {
-      try {
-        const checker = globalThis[checkConfig.checker];
-        
-        if (checker && checker.reportModule) {
-          // Check if we have data for this check
-          const hasData = checker.reportModule.hasData && checker.reportModule.hasData(this.collectedData);
-          if (hasData) {
-            checksWithData.push(checkConfig);
-          }
-        }
-      } catch (error) {
-        console.error(`Error checking data availability for ${checkConfig.name}:`, error);
-      }
-    }
-    
-    console.log('Checks with collected data to generate:', checksWithData.map(c => c.name));
-    
-    for (const checkConfig of checksWithData) {
       try {
         const checker = globalThis[checkConfig.checker];
         
         if (checker && checker.reportModule) {
           console.log(`Generating section for ${checkConfig.key}...`);
           
-          // Get the data for this specific check
+          // Get the data for this specific check - v2 format has nested structure
           const checkData = this.getDataForCheck(checkConfig.key);
           console.log(`Data for ${checkConfig.key}:`, checkData);
+          console.log(`Data structure for ${checkConfig.key}:`, JSON.stringify(checkData, null, 2));
           
-          // Only include section if check has data
-          if (checker.reportModule.hasData(checkData)) {
-            const sectionHTML = checker.reportModule.generateHTML(checkData);
+          // Check if we have data (v2 format check)
+          if (checkData && checkData.data) {
+            const sectionHTML = checker.reportModule.generateHTML(checkData.data);
             sections.push(sectionHTML);
-            console.log(`✅ Section generated for ${checkConfig.key}`);
+            console.log(`Section generated for ${checkConfig.key}`);
+          } else if (checkData && checkData.error) {
+            // Show error section for failed checks
+            sections.push(`
+              <div class="section">
+                <h2 class="section-title">${checkConfig.name}</h2>
+                <p>Data collection failed: ${checkData.error || 'Unknown error'}</p>
+              </div>
+            `);
+            console.log(`Error section generated for ${checkConfig.key}`);
           } else {
-            console.log(`⏭️ Skipping ${checkConfig.key} - no data available`);
+            console.log(`Skipping ${checkConfig.key} - no data available`);
           }
         } else {
-          console.warn(`⚠️ Missing report module for ${checkConfig.checker}`);
+          console.warn(` Missing report module for ${checkConfig.checker}`);
         }
       } catch (error) {
-        console.error(`❌ Error generating report section for ${checkConfig.key}:`, error);
+        console.error(` Error generating report section for ${checkConfig.key}:`, error);
         // Add error section instead of failing completely
         sections.push(`
           <div class="section">
-            <h2 class="section-title">❌ ${checkConfig.reportTitle}</h2>
+            <h2 class="section-title"> ${checkConfig.name}</h2>
             <p>Error generating this section: ${error.message}</p>
           </div>
         `);
       }
     }
     
+    if (sections.length === 0) {
+      sections.push(`
+        <div class="section">
+          <h2 class="section-title">No Data Available</h2>
+          <p>No check data was collected or all checks failed. Please regenerate the report.</p>
+        </div>
+      `);
+    }
+    
     return sections.join('\n');
   }
 
   getDataForCheck(checkKey) {
-    // Pass all collected data to each check module
-    // Let each module's processData() method handle what's relevant
-    return this.collectedData;
+    // V2 format: { checkKey: { success: true, data: {...}, timestamp: ... } }
+    return this.collectedData[checkKey] || null;
   }
 
   assembleCompleteReport(sectionsHTML, metadataHTML) {
@@ -407,8 +439,15 @@ class ModularReportGenerator {
 
 // Initialize the report generator when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-  const reportGenerator = new ModularReportGenerator();
-  await reportGenerator.initialize();
+  console.log('REPORT DEBUG: DOM loaded, initializing report generator');
+  try {
+    const reportGenerator = new ModularReportGenerator();
+    console.log('REPORT DEBUG: Created ModularReportGenerator instance');
+    await reportGenerator.initialize();
+    console.log('REPORT DEBUG: Report generator initialized successfully');
+  } catch (error) {
+    console.error('REPORT DEBUG: Error initializing report generator:', error);
+  }
 });
 
 // Make it globally available for debugging

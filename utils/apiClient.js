@@ -1,0 +1,211 @@
+// Shared API utility for Spaces OS Ready Report v2
+// Handles cookie-based authentication, error handling, and logging
+
+class SpacesApiClient {
+  constructor(domain, cookies) {
+    this.domain = domain;
+    this.cookies = cookies;
+    this.baseHeaders = {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'User-Agent': 'Mozilla/5.0 (compatible; Spaces-OS-Ready-Report/2.0)',
+      'X-Requested-With': 'XMLHttpRequest'
+    };
+  }
+
+  /**
+   * Make an API call with automatic cookie authentication
+   * @param {string} endpoint - API endpoint (e.g., '/api/v1/user/profile')
+   * @param {Object} options - Request options
+   * @param {string} options.method - HTTP method (default: 'GET')
+   * @param {Object} options.body - Request body for POST/PUT requests
+   * @param {Object} options.headers - Additional headers
+   * @param {Object} options.params - Query parameters
+   * @param {boolean} options.retry - Whether to retry on failure (default: true)
+   * @param {number} options.timeout - Request timeout in ms (default: 30000)
+   * @returns {Promise<Object>} API response data
+   */
+  async call(endpoint, options = {}) {
+    const {
+      method = 'GET',
+      body = null,
+      headers = {},
+      params = {},
+      retry = true,
+      timeout = 30000
+    } = options;
+
+    // Build URL with parameters
+    const url = this.buildUrl(endpoint, params);
+    
+    // Prepare request configuration
+    const requestConfig = {
+      method,
+      headers: {
+        ...this.baseHeaders,
+        'Cookie': this.cookies,
+        ...headers
+      },
+      credentials: 'include',
+      mode: 'cors'
+    };
+
+    // Add body for POST/PUT/PATCH requests
+    if (body && ['POST', 'PUT', 'PATCH'].includes(method.toUpperCase())) {
+      requestConfig.body = typeof body === 'string' ? body : JSON.stringify(body);
+    }
+
+    console.log(`🌐 API Call: ${method} ${url}`);
+    
+    try {
+      // Create abort controller for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      requestConfig.signal = controller.signal;
+
+      const response = await fetch(url, requestConfig);
+      clearTimeout(timeoutId);
+
+      console.log(`📡 Response: ${response.status} ${response.statusText} for ${endpoint}`);
+
+      if (!response.ok) {
+        throw new ApiError(`HTTP ${response.status}: ${response.statusText}`, response.status, endpoint);
+      }
+
+      const data = await response.json();
+      console.log(`✅ Success: ${endpoint} - Response keys:`, Object.keys(data));
+      
+      return data;
+    } catch (error) {
+      console.warn(`❌ API Error: ${endpoint} - ${error.message}`);
+      
+      // Retry logic for network errors (not for 4xx/5xx errors)
+      if (retry && this.shouldRetry(error)) {
+        console.log(`🔄 Retrying: ${endpoint}`);
+        await this.delay(1000); // Wait 1 second before retry
+        return this.call(endpoint, { ...options, retry: false }); // Prevent infinite retry
+      }
+      
+      throw error;
+    }
+  }
+
+  /**
+   * Make multiple API calls in parallel
+   * @param {Array<Object>} requests - Array of request objects {endpoint, options}
+   * @returns {Promise<Object>} Object with endpoint as key and result as value
+   */
+  async callMultiple(requests) {
+    console.log(`🚀 Making ${requests.length} parallel API calls`);
+    
+    const promises = requests.map(async ({ endpoint, options = {} }) => {
+      try {
+        const data = await this.call(endpoint, options);
+        return {
+          endpoint,
+          success: true,
+          data,
+          timestamp: Date.now()
+        };
+      } catch (error) {
+        return {
+          endpoint,
+          success: false,
+          error: error.message,
+          statusCode: error.statusCode,
+          timestamp: Date.now()
+        };
+      }
+    });
+
+    const results = await Promise.all(promises);
+    
+    // Convert array to object with endpoint as key
+    const resultObject = {};
+    results.forEach(result => {
+      resultObject[result.endpoint] = result;
+    });
+
+    const successful = results.filter(r => r.success).length;
+    console.log(`📊 API Results: ${successful}/${results.length} successful`);
+    
+    return resultObject;
+  }
+
+  /**
+   * Try multiple endpoints until one succeeds
+   * @param {Array<string>} endpoints - Array of endpoints to try
+   * @param {Object} options - Request options
+   * @returns {Promise<Object>} First successful response
+   */
+  async callFirstSuccess(endpoints, options = {}) {
+    console.log(`🎯 Trying endpoints in order:`, endpoints);
+    
+    for (const endpoint of endpoints) {
+      try {
+        const data = await this.call(endpoint, { ...options, retry: false });
+        console.log(`🎉 First success: ${endpoint}`);
+        return { endpoint, data };
+      } catch (error) {
+        console.log(`⏭️ Failed ${endpoint}, trying next...`);
+      }
+    }
+    
+    throw new Error(`All endpoints failed: ${endpoints.join(', ')}`);
+  }
+
+  buildUrl(endpoint, params = {}) {
+    let url = `https://${this.domain}${endpoint}`;
+    
+    const paramKeys = Object.keys(params);
+    if (paramKeys.length > 0) {
+      const searchParams = new URLSearchParams();
+      paramKeys.forEach(key => {
+        if (params[key] !== undefined && params[key] !== null) {
+          searchParams.append(key, params[key]);
+        }
+      });
+      url += `?${searchParams.toString()}`;
+    }
+    
+    return url;
+  }
+
+  shouldRetry(error) {
+    // Retry on network errors, timeouts, and 5xx server errors
+    // Don't retry on 4xx client errors (auth, not found, etc.)
+    return (
+      error.name === 'AbortError' || // Timeout
+      error.name === 'TypeError' || // Network error
+      (error.statusCode && error.statusCode >= 500) // Server error
+    );
+  }
+
+  delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+
+// Custom error class for API errors
+class ApiError extends Error {
+  constructor(message, statusCode, endpoint) {
+    super(message);
+    this.name = 'ApiError';
+    this.statusCode = statusCode;
+    this.endpoint = endpoint;
+  }
+}
+
+// Factory function to create API client instances
+export function createApiClient(domain, cookies) {
+  return new SpacesApiClient(domain, cookies);
+}
+
+// Convenience function for simple API calls
+export async function makeApiCall(domain, cookies, endpoint, options = {}) {
+  const client = createApiClient(domain, cookies);
+  return client.call(endpoint, options);
+}
+
+// Export classes for advanced usage
+export { SpacesApiClient, ApiError };

@@ -325,48 +325,68 @@ window.UIController = class UIController {
     }
 
     async handleGenerateReport() {
+        console.log(' handleGenerateReport called in popup');
         if (this.isGenerating) {
+            console.log(' Report generation already in progress, ignoring request');
             return;
         }
 
         if (!globalThis.STORAGE_KEYS || !globalThis.STORAGE_KEYS.PROGRESS) {
+            console.error(' STORAGE_KEYS.PROGRESS not defined');
             this.showError(
                 "Extension error: STORAGE_KEYS.PROGRESS is not defined. Please reload the popup or reinstall the extension."
             );
             return;
         }
+        console.log(' Storage keys validated');
 
         try {
+            console.log(' Checking current page...');
             const currentPage = await this.checkCurrentPage();
+            console.log('📄 Current page check result:', currentPage);
 
             if (!currentPage.isSpacesDomain) {
+                console.warn(' Not on Spaces domain, showing navigation error');
                 this.showNavigationError(currentPage);
                 return;
             }
+            console.log(' Page validation passed');
 
             this.isGenerating = true;
             this.updateGenerateButton(true);
+            console.log(' Starting report generation...');
 
             if (
                 !globalThis.MESSAGE_TYPES ||
                 !globalThis.MESSAGE_TYPES.START_COLLECTION
             ) {
+                console.error(' MESSAGE_TYPES.START_COLLECTION not defined');
                 this.showError(
                     "Extension error: MESSAGE_TYPES.START_COLLECTION is not defined. Please reload the popup or reinstall the extension."
                 );
                 throw new Error("MESSAGE_TYPES.START_COLLECTION is not defined");
             }
+            console.log(' Message types validated');
+
+            console.log(' Sending message to background script:', {
+                type: globalThis.MESSAGE_TYPES.START_COLLECTION,
+            });
 
             const response = await chrome.runtime.sendMessage({
                 type: globalThis.MESSAGE_TYPES.START_COLLECTION,
             });
 
+            console.log(' Received response from background:', response);
+
             if (!response || !response.success) {
+                console.error(' Background script returned error:', response);
                 throw new Error(response?.error || "Failed to start report generation");
             }
 
+            console.log(' Report generation started successfully, closing popup');
             window.close();
         } catch (error) {
+            console.error('💥 Error in handleGenerateReport:', error);
             this.showError(`Error: ${error.message}`);
             this.isGenerating = false;
             this.updateGenerateButton(false);
@@ -552,8 +572,19 @@ window.UIController = class UIController {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
+    console.log(' Popup DOM loaded, initializing...');
+    console.log(' Available global constants:');
+    console.log('   - STORAGE_KEYS:', globalThis.STORAGE_KEYS ? Object.keys(globalThis.STORAGE_KEYS) : 'Not loaded');
+    console.log('   - MESSAGE_TYPES:', globalThis.MESSAGE_TYPES ? Object.keys(globalThis.MESSAGE_TYPES) : 'Not loaded');
+    console.log('   - REPORT_CHECKS:', globalThis.REPORT_CHECKS ? globalThis.REPORT_CHECKS.length + ' checks' : 'Not loaded');
+    
     if (window.UIController) {
+        console.log(' UIController found, creating instance...');
         const uiController = new window.UIController();
+        console.log(' Calling uiController.init()...');
         await uiController.init();
+        console.log(' Popup initialization completed');
+    } else {
+        console.error(' UIController not found in window');
     }
 });

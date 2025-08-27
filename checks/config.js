@@ -1,76 +1,80 @@
+// Configuration for all OS Ready Report checks - v2 API-based version
+// Updated for API-based data collection instead of DOM manipulation
 
-// Consolidated configuration for all OS Ready Report checks
-// This is the single source of truth for check configuration
+console.log('REPORT DEBUG: config.js loaded');
+
 // To add a new check: add an object with key, name, checker, method, file, enabled, and report properties
-globalThis.REPORT_CHECKS = [
-  {
+globalThis.CHECKS = {
+  'account': {
     key: 'account',
-    name: 'Extract Account Information',
-    checker: 'AccountExtractor',
-    method: 'extractAccountInfo',
-    file: 'checks/account.js',
+    name: 'Account Information',
+    checker: 'AccountChecker',
+    method: 'execute',
+    file: 'account.js',
     enabled: true,
-    // Report configuration
-    reportTitle: 'Account Information',
+    hasReport: true,
     reportOrder: 1,
-    hasReport: true
+    description: 'Extracts account and organization information via API calls'
   },
-  {
+  'location': {
     key: 'location',
-    name: 'Check Location Hierarchy',
+    name: 'Location Data',
     checker: 'LocationChecker',
-    method: 'checkLocationHierarchy',
-    file: 'checks/location.js',
+    method: 'execute', 
+    file: 'location.js',
     enabled: true,
-    // Report configuration
-    reportTitle: 'Location Hierarchy',
+    hasReport: true,
     reportOrder: 2,
-    hasReport: true
+    description: 'Collects location and facility data via API calls'
   },
-  {
+  'wireless': {
     key: 'wireless',
-    name: 'Check Wireless Networks',
+    name: 'Wireless Networks',
     checker: 'WirelessChecker',
-    method: 'checkWirelessNetworks',
-    file: 'checks/wireless.js',
+    method: 'execute',
+    file: 'wireless.js', 
     enabled: true,
-    // Report configuration
-    reportTitle: 'Wireless Networks',
+    hasReport: true,
     reportOrder: 3,
-    hasReport: true
+    description: 'Gathers WiFi and network configuration via API calls'
   },
-  {
-    key: 'connector',
-    name: 'Check Connector Status',
+  'connectors': {
+    key: 'connectors',
+    name: 'Connector Status',
     checker: 'ConnectorChecker',
-    method: 'checkConnectorStatus',
-    file: 'checks/connectors.js',
+    method: 'execute',
+    file: 'connectors.js',
     enabled: true,
-    // Report configuration
-    reportTitle: 'Connector Status',
+    hasReport: true,
     reportOrder: 4,
-    hasReport: true
+    description: 'Retrieves hardware connector and device information via API calls'
   },
-  {
+  'integrations': {
     key: 'integrations',
-    name: 'Check Integrations',
+    name: 'Integrations',
     checker: 'IntegrationsChecker',
-    method: 'checkIntegrations',
-    file: 'checks/integrations.js',
+    method: 'execute',
+    file: 'integrations.js',
     enabled: true,
-    // Report configuration
-    reportTitle: 'Integrations',
+    hasReport: true,
     reportOrder: 5,
-    hasReport: true
-  },
-  {
-    key: 'report',
-    name: 'Generate OS Ready Report',
-    checker: null, // No checker needed - handled by progress manager
-    method: null,
-    file: null,
-    enabled: true,
-    // No report section needed - this IS the report
-    hasReport: false
+    description: 'Analyzes third-party integrations and external services via API calls'
   }
-];
+};
+
+// Convenience arrays for easier access
+globalThis.ENABLED_CHECKS = Object.values(globalThis.CHECKS).filter(check => check.enabled);
+globalThis.REPORT_CHECKS = Object.values(globalThis.CHECKS).filter(check => check.hasReport);
+
+console.log('v2 Checks configuration loaded:');
+console.log('   Total checks:', Object.keys(globalThis.CHECKS).length);
+console.log('   Enabled checks:', globalThis.ENABLED_CHECKS.map(c => c.key));
+console.log('   Report checks:', globalThis.REPORT_CHECKS.map(c => c.key));
+
+// Metadata about this configuration
+globalThis.CONFIG_METADATA = {
+  version: '2.0.0',
+  lastUpdated: '2025-08-26',
+  approach: 'API-based',
+  description: 'Configuration for Spaces OS Ready Report v2 with API-based data collection'
+};
