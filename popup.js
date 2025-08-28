@@ -51,7 +51,7 @@ window.UIController = class UIController {
 
             const buttonContainer = document.createElement("div");
             buttonContainer.style.display = "grid";
-            buttonContainer.style.gridTemplateColumns = "1fr 1fr";
+            buttonContainer.style.gridTemplateColumns = "1fr 1fr 1fr";
             buttonContainer.style.gap = "8px";
             debugActionsContainer.appendChild(buttonContainer);
 
@@ -68,6 +68,13 @@ window.UIController = class UIController {
             this.styleDebugButton(resetNavBtn);
             resetNavBtn.addEventListener("click", () => this.handleResetNavigationLock());
             buttonContainer.appendChild(resetNavBtn);
+
+            const getCookiesBtn = document.createElement("button");
+            getCookiesBtn.textContent = "Get Cookies";
+            getCookiesBtn.title = "Extracts authentication cookies for external API use";
+            this.styleDebugButton(getCookiesBtn);
+            getCookiesBtn.addEventListener("click", () => this.handleGetCookies());
+            buttonContainer.appendChild(getCookiesBtn);
 
             debugActionsContainer.style.display = "flex";
             debugActionsContainer.style.flexDirection = "column";
@@ -116,10 +123,10 @@ window.UIController = class UIController {
 
         if (expandForDebug) {
             // Expand popup to accommodate debug section and enabled checks
-            // Base height + debug actions + enabled checks section
-            popupContainer.style.minHeight = '380px';
+            // Base height + debug actions (now with 3 buttons) + enabled checks section
+            popupContainer.style.minHeight = '400px';
             popupContainer.style.transition = 'min-height 0.3s ease';
-            document.body.style.minHeight = '380px';
+            document.body.style.minHeight = '400px';
         } else {
             // Resize back to normal
             popupContainer.style.minHeight = '200px';
@@ -300,6 +307,8 @@ window.UIController = class UIController {
         if (viewReportBtn) {
             viewReportBtn.addEventListener("click", () => this.handleViewReport());
         }
+
+
 
         const debugToggle = document.getElementById("debugToggle");
         if (debugToggle) {
@@ -534,6 +543,129 @@ window.UIController = class UIController {
             this.showSuccess("Navigation lock reset successfully");
         } catch (error) {
             this.showError(`Error: ${error.message}`);
+        }
+    }
+
+    /**
+     * Extracts authentication cookies from the current Cisco Spaces domain
+     * and copies them to clipboard for use in external API calls.
+     * 
+     * This function:
+     * 1. Validates the current domain is a supported Cisco Spaces domain
+     * 2. Extracts all cookies for the domain and root domain
+     * 3. Filters for authentication-related cookies
+     * 4. Creates formatted JSON output with cookie strings
+     * 5. Copies the data to clipboard for external use
+     * 
+     * The output includes:
+     * - Complete cookie string for API calls
+     * - Authentication-only cookie string
+     * - Individual cookie details
+     * - Domain and timestamp information
+     */
+    async handleGetCookies() {
+        try {
+            console.log('Getting cookies for external API use...');
+            
+            // Get current tab to determine domain
+            const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+            const currentTab = tabs[0];
+            
+            if (!currentTab) {
+                throw new Error('No active tab found');
+            }
+            
+            const domain = new URL(currentTab.url).hostname;
+            console.log('Current domain:', domain);
+            
+            // Check if we're on a supported Spaces domain
+            const isSpacesDomain = Object.values(globalThis.DOMAINS).some(spacesDomain => 
+                domain.includes(spacesDomain)
+            );
+            
+            if (!isSpacesDomain) {
+                this.showError('Please navigate to a Cisco Spaces domain (dnaspaces.io, dnaspaces.eu, or dnaspaces.sg)');
+                return;
+            }
+            
+            // Get cookies for the domain and subdomains
+            const cookies = await chrome.cookies.getAll({domain: domain});
+            
+            // Also get cookies for the root domain (e.g., .dnaspaces.io)
+            const rootDomain = domain.split('.').slice(-2).join('.');
+            const rootCookies = await chrome.cookies.getAll({domain: rootDomain});
+            
+            // Combine and deduplicate cookies
+            const allCookies = [...cookies, ...rootCookies];
+            const uniqueCookies = allCookies.filter((cookie, index, self) => 
+                index === self.findIndex(c => c.name === cookie.name && c.domain === cookie.domain)
+            );
+            
+            if (!uniqueCookies || uniqueCookies.length === 0) {
+                this.showError('No cookies found for this domain. Please ensure you are logged in to Cisco Spaces.');
+                return;
+            }
+            
+            // Filter for authentication cookies (common patterns)
+            const authCookies = uniqueCookies.filter(cookie => {
+                const name = cookie.name.toLowerCase();
+                return name.includes('auth') || 
+                       name.includes('token') || 
+                       name.includes('session') || 
+                       name.includes('csrf') ||
+                       name.includes('jwt') ||
+                       name.includes('access') ||
+                       name.includes('refresh') ||
+                       name.includes('id') ||
+                       name.includes('user');
+            });
+            
+            // Create cookie string for external use
+            const cookieString = uniqueCookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
+            const authCookieString = authCookies.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
+            
+            // Create formatted output
+            const cookieData = {
+                domain: domain,
+                timestamp: new Date().toISOString(),
+                totalCookies: uniqueCookies.length,
+                authCookies: authCookies.length,
+                allCookies: cookieString,
+                authCookiesOnly: authCookieString,
+                individualCookies: uniqueCookies.map(cookie => ({
+                    name: cookie.name,
+                    value: cookie.value,
+                    domain: cookie.domain,
+                    path: cookie.path,
+                    secure: cookie.secure,
+                    httpOnly: cookie.httpOnly,
+                    expirationDate: cookie.expirationDate
+                })),
+                authCookiesList: authCookies.map(cookie => ({
+                    name: cookie.name,
+                    value: cookie.value,
+                    domain: cookie.domain,
+                    path: cookie.path
+                }))
+            };
+            
+            // Copy to clipboard
+            try {
+                await navigator.clipboard.writeText(JSON.stringify(cookieData, null, 2));
+                this.showSuccess(`Cookies copied to clipboard! Found ${uniqueCookies.length} total cookies (${authCookies.length} auth-related)`);
+            } catch (clipboardError) {
+                console.warn('Clipboard access failed, showing data in console:', clipboardError);
+                // Fallback: show the data in console and alert
+                console.log('Cookie data (copy manually):', JSON.stringify(cookieData, null, 2));
+                this.showSuccess(`Cookies data logged to console! Found ${uniqueCookies.length} total cookies (${authCookies.length} auth-related). Check browser console to copy.`);
+            }
+            
+            // Log the data for debugging
+            console.log('Cookie data:', cookieData);
+            
+        } catch (error) {
+            console.error('Error getting cookies:', error);
+            this.showError(`Error getting cookies: ${error.message}`);
         }
     }
 
