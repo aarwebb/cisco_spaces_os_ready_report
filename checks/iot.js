@@ -1,4 +1,4 @@
-// Template data checker for Spaces OS Ready Report v2
+// IoT data checker for Spaces OS Ready Report v2
 
 console.log('REPORT DEBUG: iot.js loaded');
 

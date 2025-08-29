@@ -242,6 +242,15 @@ button:disabled {
   box-shadow: none;
 }
 
+button:disabled:hover,
+.btn-primary:disabled:hover,
+.btn-success:disabled:hover {
+  background: var(--color-border) !important;
+  color: #999999 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
 /* Generating State */
 #generateReport.generating {
   background: var(--color-primary);
@@ -330,22 +339,19 @@ button:disabled {
   background: var(--color-card);
   border-radius: 50%;
 }
-
 .circular-progress circle.bg {
   stroke: #E0E0E0;
-  fill: var(--color-card);
+  fill: #FFFFFF;
   stroke-width: 10;
 }
 
 .circular-progress circle.fg {
-  stroke: var(--color-success, #28A745);
-  stroke-dasharray: 314.159;
-  stroke-dashoffset: 314.159;
-  transition: stroke-dashoffset 0.3s linear 0s;
-  transform: rotate(-90deg);
-  transform-origin: 50% 50%;
+  stroke: #28A745; /* Foreground color matches test component */
+  fill: none; /* No fill for progress stroke */
+  stroke-linecap: round; /* Round ends for progress bar */
   stroke-width: 10;
-  fill: none;
+  transform: rotate(90deg);
+  transform-origin: 60px 60px;
 }
 
 .progress-text {

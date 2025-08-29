@@ -48,6 +48,13 @@ globalThis.CHECKS = {
     checker: 'IoTChecker',
     method: 'execute',
     hasReport: true
+  },
+  'rightNow': {
+    key: 'rightNow',
+    name: 'Right Now Settings',
+    checker: 'RightNowChecker',
+    method: 'execute',
+    hasReport: true
   }
 };
 

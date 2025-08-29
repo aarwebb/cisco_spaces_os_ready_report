@@ -34,6 +34,7 @@
         "checks/connectors.js",
         "checks/integrations.js",
         "checks/iot.js",
+        "checks/rightNow.js",
         "content.js"
         ]
     }
