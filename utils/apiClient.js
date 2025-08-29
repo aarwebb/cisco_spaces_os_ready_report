@@ -2,9 +2,8 @@
 // Handles cookie-based authentication, error handling, and logging
 
 class SpacesApiClient {
-  constructor(domain, cookies) {
+  constructor(domain) {
     this.domain = domain;
-    this.cookies = cookies;
     this.baseHeaders = {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
@@ -37,13 +36,14 @@ class SpacesApiClient {
 
     // Build URL with parameters
     const url = this.buildUrl(endpoint, params);
-    
+
     // Prepare request configuration
+    const sysToken = window.currentSysToken || '';
     const requestConfig = {
       method,
       headers: {
         ...this.baseHeaders,
-        'Cookie': this.cookies,
+        ...(sysToken ? {'Cookie': `sys-token=${sysToken}`} : {}),
         ...headers
       },
       credentials: 'include',
@@ -56,7 +56,7 @@ class SpacesApiClient {
     }
 
     console.log(`🌐 API Call: ${method} ${url}`);
-    
+
     try {
       // Create abort controller for timeout
       const controller = new AbortController();
@@ -74,18 +74,18 @@ class SpacesApiClient {
 
       const data = await response.json();
       console.log(`✅ Success: ${endpoint} - Response keys:`, Object.keys(data));
-      
+
       return data;
     } catch (error) {
       console.warn(`❌ API Error: ${endpoint} - ${error.message}`);
-      
+
       // Retry logic for network errors (not for 4xx/5xx errors)
       if (retry && this.shouldRetry(error)) {
         console.log(`🔄 Retrying: ${endpoint}`);
         await this.delay(1000); // Wait 1 second before retry
         return this.call(endpoint, { ...options, retry: false }); // Prevent infinite retry
       }
-      
+
       throw error;
     }
   }
@@ -96,30 +96,35 @@ class SpacesApiClient {
    * @returns {Promise<Object>} Object with endpoint as key and result as value
    */
   async callMultiple(requests) {
-    console.log(`🚀 Making ${requests.length} parallel API calls`);
-    
-    const promises = requests.map(async ({ endpoint, options = {} }) => {
+    console.log(`🚀 Making ${requests.length} sequential API calls with delay`);
+
+    const results = [];
+    for (let i = 0; i < requests.length; i++) {
+      const { endpoint, options = {} } = requests[i];
       try {
         const data = await this.call(endpoint, options);
-        return {
+        results.push({
           endpoint,
           success: true,
           data,
           timestamp: Date.now()
-        };
+        });
       } catch (error) {
-        return {
+        results.push({
           endpoint,
           success: false,
           error: error.message,
           statusCode: error.statusCode,
           timestamp: Date.now()
-        };
+        });
       }
-    });
+      // Wait between calls except after the last one
+      if (i < requests.length - 1) {
+        const delayMs = typeof globalThis.API_CALL_DELAY === 'number' ? globalThis.API_CALL_DELAY : 2000;
+        await this.delay(delayMs);
+      }
+    }
 
-    const results = await Promise.all(promises);
-    
     // Convert array to object with endpoint as key
     const resultObject = {};
     results.forEach(result => {
@@ -128,7 +133,7 @@ class SpacesApiClient {
 
     const successful = results.filter(r => r.success).length;
     console.log(`📊 API Results: ${successful}/${results.length} successful`);
-    
+
     return resultObject;
   }
 
@@ -140,7 +145,7 @@ class SpacesApiClient {
    */
   async callFirstSuccess(endpoints, options = {}) {
     console.log(`🎯 Trying endpoints in order:`, endpoints);
-    
+
     for (const endpoint of endpoints) {
       try {
         const data = await this.call(endpoint, { ...options, retry: false });
@@ -150,13 +155,13 @@ class SpacesApiClient {
         console.log(`⏭️ Failed ${endpoint}, trying next...`);
       }
     }
-    
+
     throw new Error(`All endpoints failed: ${endpoints.join(', ')}`);
   }
 
   buildUrl(endpoint, params = {}) {
     let url = `https://${this.domain}${endpoint}`;
-    
+
     const paramKeys = Object.keys(params);
     if (paramKeys.length > 0) {
       const searchParams = new URLSearchParams();
@@ -167,7 +172,7 @@ class SpacesApiClient {
       });
       url += `?${searchParams.toString()}`;
     }
-    
+
     return url;
   }
 
@@ -196,16 +201,13 @@ class ApiError extends Error {
   }
 }
 
-// Factory function to create API client instances
-export function createApiClient(domain, cookies) {
-  return new SpacesApiClient(domain, cookies);
-}
-
-// Convenience function for simple API calls
-export async function makeApiCall(domain, cookies, endpoint, options = {}) {
-  const client = createApiClient(domain, cookies);
+// Attach to globalThis for use in content scripts
+globalThis.SpacesApiClient = SpacesApiClient;
+globalThis.ApiError = ApiError;
+globalThis.createApiClient = function(domain) {
+  return new SpacesApiClient(domain);
+};
+globalThis.makeApiCall = async function(domain, endpoint, options = {}) {
+  const client = globalThis.createApiClient(domain);
   return client.call(endpoint, options);
-}
-
-// Export classes for advanced usage
-export { SpacesApiClient, ApiError };
+};

@@ -1,15 +1,20 @@
+// Fetch username/email from login history endpoint
+globalThis.getUsername = async function getUsername(domain) {
+  // Read userName from browser sessionStorage for the current domain
+  try {
+    // This must run in the context of the page (content script)
+    const username = window.sessionStorage.getItem('userName');
+    console.log('[getUsername] Read from sessionStorage:', username);
+    return username || null;
+  } catch (error) {
+    console.warn('❌ Could not retrieve username from sessionStorage:', error.message);
+    return null;
+  }
+};
 // Common utilities for check modules
 // Shared helper functions used across multiple checks
 
-import { createApiClient } from './apiClient.js';
-
-/**
- * Extract tenant information from API responses
- * Handles various response structures commonly found in Spaces APIs
- * @param {Object} data - API response data
- * @returns {Object|null} Extracted tenant info or null if not found
- */
-export function extractTenantInfo(data) {
+globalThis.extractTenantInfo = function extractTenantInfo(data) {
   if (!data) return null;
   
   let tenantInfo = null;
@@ -61,57 +66,29 @@ export function extractTenantInfo(data) {
   }
   
   return tenantInfo && tenantInfo.tenantId ? tenantInfo : null;
-}
+};
 
-/**
- * Get tenant information by trying multiple common endpoints
- * @param {string} domain - The domain to call
- * @param {string} cookies - Authentication cookies
- * @returns {Promise<Object|null>} Tenant info or null if not found
- */
-export async function getTenantInfo(domain, cookies) {
-  console.log('🔍 Retrieving tenant information');
-  
-  const apiClient = createApiClient(domain, cookies);
-  
-  // Common endpoints that typically contain tenant info
-  // Start with the most reliable endpoint first
-  const endpoints = [
-    '/api/v1/user/current/status',  // Primary endpoint with comprehensive tenant info
-    '/api/v1/user/profile',
-    '/api/v1/account/info',
-    '/api/v1/account/tenant',
-    '/api/v1/tenant',
-    '/api/v1/organization',
-    '/api/v1/client/info',
-    '/api/v1/auth/profile',
-    '/api/v1/me'
-  ];
-  
+globalThis.getTenantInfo = async function getTenantInfo(domain) {
+  // Read tenantId from browser sessionStorage for the current domain
   try {
-    const result = await apiClient.callFirstSuccess(endpoints);
-    const tenantInfo = extractTenantInfo(result.data);
-    
-    if (tenantInfo) {
-      console.log(`✅ Retrieved tenant info from: ${result.endpoint}`, tenantInfo);
-      return tenantInfo;
+    const tenantId = window.sessionStorage.getItem('tenantId');
+    console.log('[getTenantInfo] Read tenantId from sessionStorage:', tenantId);
+    if (tenantId) {
+      return {
+        tenantId,
+        clientId: tenantId,
+        accountId: tenantId
+      };
     }
-    
-    console.warn('⚠️ No tenant info found in API responses');
+    console.warn('[getTenantInfo] No tenantId found in sessionStorage');
+    return null;
   } catch (error) {
-    console.warn('❌ Could not retrieve tenant information:', error.message);
+    console.warn('❌ Could not retrieve tenantId from sessionStorage:', error.message);
+    return null;
   }
-  
-  return null;
-}
+};
 
-/**
- * Create a standardized API request configuration
- * @param {string} endpoint - API endpoint
- * @param {Object} options - Request options
- * @returns {Object} Request configuration object
- */
-export function createApiRequest(endpoint, options = {}) {
+globalThis.createApiRequest = function createApiRequest(endpoint, options = {}) {
   return {
     endpoint,
     options: {
@@ -119,14 +96,9 @@ export function createApiRequest(endpoint, options = {}) {
       ...options
     }
   };
-}
+};
 
-/**
- * Generate a summary of API call results
- * @param {Object} results - Results from API calls
- * @returns {Object} Summary statistics
- */
-export function summarizeApiResults(results) {
+globalThis.summarizeApiResults = function summarizeApiResults(results) {
   const total = Object.keys(results).length;
   const successful = Object.values(results).filter(r => r.success).length;
   const failed = total - successful;
@@ -145,14 +117,9 @@ export function summarizeApiResults(results) {
   console.log(`📊 API Summary: ${successful}/${total} successful (${summary.successRate}%)`);
   
   return summary;
-}
+};
 
-/**
- * Extract common error patterns and generate user-friendly messages
- * @param {Object} results - Results from API calls
- * @returns {Array} Array of error messages
- */
-export function extractApiErrors(results) {
+globalThis.extractApiErrors = function extractApiErrors(results) {
   const errors = [];
   
   Object.entries(results).forEach(([endpoint, result]) => {
@@ -172,15 +139,9 @@ export function extractApiErrors(results) {
   });
   
   return errors;
-}
+};
 
-/**
- * Validate required data fields are present
- * @param {Object} data - Data to validate
- * @param {Array<string>} requiredFields - Array of required field paths (e.g., ['user.id', 'organization.name'])
- * @returns {Object} Validation result with missing fields
- */
-export function validateDataFields(data, requiredFields) {
+globalThis.validateDataFields = function validateDataFields(data, requiredFields) {
   const missing = [];
   
   requiredFields.forEach(field => {
@@ -194,4 +155,6 @@ export function validateDataFields(data, requiredFields) {
     valid: missing.length === 0,
     missing
   };
-}
+};
+
+console.log('[checkUtils] getTenantInfo attached:', typeof globalThis.getTenantInfo);
