@@ -261,8 +261,6 @@ async function startAutomation() {
 
 // --- Main entry point: Wait for sys-token, then initialize everything ---
 (async () => {
-    console.log('[content] Waiting for sys-token from background');
-    await setSysTokenFromBackground();
     window.osReadyAutomation = { startCollection: startAutomation };
     console.log('[content] Content script entry point, initializing');
     initializeContent();
@@ -276,3 +274,19 @@ async function startAutomation() {
         console.log('[content] Debug: Initial progress in storage:', result);
     });
 })();
+
+// Only fetch sys-token when collection is started
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'start_collection') {
+        setSysTokenFromBackground().then(() => {
+            start_collection().then(() => {
+                sendResponse({ success: true, message: 'start_collection completed' });
+            }).catch((error) => {
+                sendResponse({ success: false, error: error?.message || 'start_collection failed' });
+            });
+        }).catch((error) => {
+            sendResponse({ success: false, error: error?.message || 'Failed to get sys-token' });
+        });
+        return true;
+    }
+});

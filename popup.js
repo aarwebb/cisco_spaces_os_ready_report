@@ -1,3 +1,34 @@
+// Sync enabledChecks in storage with REPORT_CHECKS config
+async function syncEnabledChecksWithConfig() {
+    const result = await chrome.storage.local.get(['enabledChecks']);
+    const enabledChecks = result.enabledChecks || {};
+    let updated = false;
+    const added = [];
+    const removed = [];
+    if (globalThis.REPORT_CHECKS && Array.isArray(globalThis.REPORT_CHECKS)) {
+        globalThis.REPORT_CHECKS.forEach(check => {
+            if (!(check.key in enabledChecks)) {
+                enabledChecks[check.key] = true; // default for new checks
+                added.push(check.key);
+                updated = true;
+            }
+        });
+        // Remove stale keys
+        Object.keys(enabledChecks).forEach(key => {
+            if (!globalThis.REPORT_CHECKS.find(c => c.key === key)) {
+                delete enabledChecks[key];
+                removed.push(key);
+                updated = true;
+            }
+        });
+    }
+    if (updated) {
+        await chrome.storage.local.set({ enabledChecks });
+        console.log('[popup] syncEnabledChecksWithConfig ran. Added:', added, 'Removed:', removed, 'Final enabledChecks:', enabledChecks);
+    } else {
+        console.log('[popup] syncEnabledChecksWithConfig ran. No changes needed.');
+    }
+}
 // Listen for error messages from background.js and display them in the popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'error' && message.error) {
@@ -334,7 +365,9 @@ window.UIController = UIController;
 document.addEventListener('DOMContentLoaded', () => {
     const controller = new UIController();
     window.controller = controller;
-    controller.initializeEnabledChecks();
+    syncEnabledChecksWithConfig().then(() => {
+        controller.initializeEnabledChecks();
+    });
     controller.updateUI();
     // Hide progress bar on initial load
     const progressContainer = document.querySelector('.progress-container');
