@@ -14,8 +14,9 @@
       </div>
 
       <div class="actions">
-        <button id="exportPdf" class="action-btn btn-success">Export PDF</button>
-        <button id="exportJson" class="action-btn btn-primary">Export JSON</button>
+  <button id="exportPdf" class="action-btn btn-success">Export PDF</button>
+  <button id="exportJson" class="action-btn btn-primary">Export JSON</button>
+  <button id="exportRaw" class="action-btn btn-secondary">Export Raw Data</button>
       </div>
 
       <div id="message" class="message"></div>
@@ -35,19 +36,22 @@
       </div>
     </div>
 
-    <!-- Include configuration and check files for their report modules -->
-    <script src="checks/config.js"></script>
-    <script src="checks/account.js"></script>
-    <script src="checks/location.js"></script>
-    <script src="checks/wireless.js"></script>
-    <script src="checks/connectors.js"></script>
-    <script src="checks/integrations.js"></script>
+  <!-- Include global utilities -->
+  <script src="utils.js"></script>
+
+  <!-- Include configuration and check files for their report modules -->
+  <script src="checks/config.js"></script>
+  <script src="checks/account.js"></script>
+  <script src="checks/location.js"></script>
+  <script src="checks/wireless.js"></script>
+  <script src="checks/connectors.js"></script>
+  <script src="checks/integrations.js"></script>
     
-    <!-- Include PDF export libraries -->
-    <script src="libs/html2canvas.min.js"></script>
-    <script src="libs/jspdf.umd.min.js"></script>
+  <!-- Include PDF export libraries -->
+  <script src="libs/html2canvas.min.js"></script>
+  <script src="libs/jspdf.umd.min.js"></script>
     
-    <!-- Include the modular report generator -->
-    <script src="report.js"></script>
+  <!-- Include the modular report generator -->
+  <script src="report.js"></script>
   </body>
 </html>

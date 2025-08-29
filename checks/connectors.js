@@ -1,33 +1,37 @@
 // Connectors data checker for Spaces OS Ready Report v2
-// NOTE: This file is not used by V2 - functionality is built into background.js
 
-async function execute(domain, cookies) {
-  console.log('This connectors check file is not used in V2');
-  console.log('Connectors logic is built into background.js');
-  return {
-    status: 'not_implemented',
-    message: 'V2 uses background.js for connectors check',
-    data: {}
+// Endpoint constants
+const CONNECTORS_DETAILS = '/api/v1/connector/list';
+
+class ConnectorChecker {
+  constructor(domain) {
+    this.domain = domain;
+  }
+
+  async execute() {
+    const endpoints = [
+        CONNECTORS_DETAILS
+    ];
+    const client = globalThis.createApiClient(this.domain);
+    const results = await client.callMultiple(endpoints.map(endpoint => ({ endpoint })));
+    return { connectors: results };
+  }
+
+  static reportModule = {
+    generateHTML: function(data) {
+      return `
+        <div class="section" id="connectors-section">
+          <h2 class="section-title">Connectors Data</h2>
+          <pre style="white-space: pre-wrap; word-break: break-all; background: #f5f5f5; padding: 1em; border-radius: 4px;">
+            ${JSON.stringify(data, null, 2)}
+          </pre>
+        </div>
+      `;
+    },
+    processData: function(rawData) {
+      return rawData || {};
+    }
   };
 }
 
-// Make the checker available globally for report generation
-globalThis.ConnectorChecker = {
-  execute: execute
-};
-
-// Report module for generating connectors section in reports
-globalThis.ConnectorChecker.reportModule = {
-  generateHTML: function(data) {
-    return `
-      <div class="section" id="connectors-section">
-        <h2 class="section-title">Connectors Data</h2>
-        <p>Connectors check is not implemented in V2. Data collection is handled by background.js.</p>
-      </div>
-    `;
-  },
-  
-  processData: function(rawData) {
-    return rawData || {};
-  }
-};
+globalThis.ConnectorChecker = ConnectorChecker;

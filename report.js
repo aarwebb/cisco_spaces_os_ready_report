@@ -75,76 +75,65 @@ class ModularReportGenerator {
   }
 
   generateMetadata() {
-    // For v2, try to extract metadata from collection status or generate current info
-    let reportGenerated = new Date().toLocaleString();
-    let executionTime = 'N/A';
-    let domain = 'N/A';
-    
-    // Try to get metadata from v2 collection status
-    chrome.storage.local.get(['collectionStatus'], (result) => {
-      if (result.collectionStatus) {
-        const status = result.collectionStatus;
-        if (status.startTime && status.endTime) {
-          reportGenerated = new Date(status.endTime).toLocaleString();
-          executionTime = `${((status.endTime - status.startTime) / 1000).toFixed(2)}s`;
-        }
-        if (status.domain) {
-          domain = status.domain;
-        }
-      }
-    });
-    
-    // Try to extract domain from account data if available
-    if (this.collectedData.account && this.collectedData.account.success) {
-      const accountSummary = this.collectedData.account.data?.summary;
-      if (accountSummary?.accountDomain) {
-        domain = accountSummary.accountDomain;
-      }
-    }
-    
-    return `
-      <div class="metadata">
-        <div class="metadata-title">Report Metadata</div>
-        <div class="metadata-content">
-          <div>Generated: ${reportGenerated}</div>
-          <div>Execution Time: ${executionTime}</div>
-          <div>Domain: ${domain}</div>
-          <div>Version: v2.0.0 (API-based)</div>
-        </div>
-      </div>
-    `;
+  let reportGenerated = new Date().toLocaleString();
+  let executionTime = this.collectedData['Execution Time'] || 'N/A';
+  let domain = this.collectedData['Domain'] || 'N/A';
+
+  // Try to extract domain from account data if available
+  if (
+    this.collectedData.account &&
+    this.collectedData.account.data &&
+    this.collectedData.account.data.summary &&
+    this.collectedData.account.data.summary.accountDomain
+  ) {
+    domain = this.collectedData.account.data.summary.accountDomain;
   }
+
+  return `
+    <div class="metadata">
+      <div class="metadata-title">Report Metadata</div>
+      <div class="metadata-content">
+        <div>Generated: ${reportGenerated}</div>
+        <div>Execution Time: ${executionTime}</div>
+        <div>Domain: ${domain}</div>
+        <div>Version: v2.0.0 (API-based)</div>
+      </div>
+    </div>
+  `;
+}
 
   async generateSections() {
     const sections = [];
-    
+    // Debug: Log the full REPORT_CHECKS array
+    console.log('DEBUG: REPORT_CHECKS:', globalThis.REPORT_CHECKS);
     // Get all checks with reports
     const allChecksWithReports = globalThis.REPORT_CHECKS
       ? globalThis.REPORT_CHECKS
           .filter(check => check.hasReport)
           .sort((a, b) => a.reportOrder - b.reportOrder)
       : [];
-    
-    console.log('All possible checks with reports:', allChecksWithReports.map(c => c.name));
-    console.log('Available collected data keys:', Object.keys(this.collectedData));
-    
+    console.log('DEBUG: All possible checks with reports:', allChecksWithReports.map(c => c.name));
+    console.log('DEBUG: Available collected data keys:', Object.keys(this.collectedData));
     for (const checkConfig of allChecksWithReports) {
       try {
+        // Debug: Log checker module presence
+        console.log(`DEBUG: Checker for ${checkConfig.key}:`, checkConfig.checker, globalThis[checkConfig.checker]);
         const checker = globalThis[checkConfig.checker];
-        
         if (checker && checker.reportModule) {
-          console.log(`Generating section for ${checkConfig.key}...`);
-          
+          console.log(`DEBUG: Generating section for ${checkConfig.key}...`);
           // Get the data for this specific check - v2 format has nested structure
           const checkData = this.getDataForCheck(checkConfig.key);
-          console.log(`Data for ${checkConfig.key}:`, checkData);
-          console.log(`Data structure for ${checkConfig.key}:`, JSON.stringify(checkData, null, 2));
-          
-          // Check if we have data (v2 format check)
-          if (checkData && checkData.data) {
-            const sectionHTML = checker.reportModule.generateHTML(checkData.data);
+          console.log(`DEBUG: Data for ${checkConfig.key}:`, checkData);
+          console.log(`DEBUG: Data structure for ${checkConfig.key}:`, JSON.stringify(checkData, null, 2));
+          // Debug: Log key matching
+          if (!this.collectedData.hasOwnProperty(checkConfig.key)) {
+            console.warn(`DEBUG: collectedData does not have key '${checkConfig.key}'`);
+          }
+          // Generate section if checkData is a non-empty object (endpoint results)
+          if (checkData && typeof checkData === 'object' && Object.keys(checkData).length > 0) {
+            const sectionHTML = checker.reportModule.generateHTML(checkData);
             sections.push(sectionHTML);
-            console.log(`Section generated for ${checkConfig.key}`);
+            console.log(`DEBUG: Section generated for ${checkConfig.key}`);
           } else if (checkData && checkData.error) {
             // Show error section for failed checks
             sections.push(`
@@ -153,15 +142,15 @@ class ModularReportGenerator {
                 <p>Data collection failed: ${checkData.error || 'Unknown error'}</p>
               </div>
             `);
-            console.log(`Error section generated for ${checkConfig.key}`);
+            console.log(`DEBUG: Error section generated for ${checkConfig.key}`);
           } else {
-            console.log(`Skipping ${checkConfig.key} - no data available`);
+            console.log(`DEBUG: Skipping ${checkConfig.key} - no data available`);
           }
         } else {
-          console.warn(` Missing report module for ${checkConfig.checker}`);
+          console.warn(`DEBUG: Missing report module for ${checkConfig.checker}`);
         }
       } catch (error) {
-        console.error(` Error generating report section for ${checkConfig.key}:`, error);
+        console.error(`DEBUG: Error generating report section for ${checkConfig.key}:`, error);
         // Add error section instead of failing completely
         sections.push(`
           <div class="section">
@@ -171,7 +160,6 @@ class ModularReportGenerator {
         `);
       }
     }
-    
     if (sections.length === 0) {
       sections.push(`
         <div class="section">
@@ -180,7 +168,6 @@ class ModularReportGenerator {
         </div>
       `);
     }
-    
     return sections.join('\n');
   }
 
@@ -222,7 +209,6 @@ class ModularReportGenerator {
     // Export PDF button
     const exportBtn = document.getElementById('exportPdf');
     if (exportBtn) {
-      // Remove existing listeners to prevent duplicate calls
       exportBtn.replaceWith(exportBtn.cloneNode(true));
       const newExportBtn = document.getElementById('exportPdf');
       newExportBtn.addEventListener('click', () => this.exportToPDF());
@@ -231,10 +217,53 @@ class ModularReportGenerator {
     // Export JSON button
     const exportJsonBtn = document.getElementById('exportJson');
     if (exportJsonBtn) {
-      // Remove existing listeners to prevent duplicate calls
       exportJsonBtn.replaceWith(exportJsonBtn.cloneNode(true));
       const newExportJsonBtn = document.getElementById('exportJson');
       newExportJsonBtn.addEventListener('click', () => this.exportToJSON());
+    }
+
+    // Export Raw Data button
+    const exportRawBtn = document.getElementById('exportRaw');
+    if (exportRawBtn) {
+      exportRawBtn.replaceWith(exportRawBtn.cloneNode(true));
+      const newExportRawBtn = document.getElementById('exportRaw');
+      newExportRawBtn.addEventListener('click', () => this.exportRawData());
+    }
+  }
+
+  // Should be updated to only export grouped "raw" data once report formatting is implemented
+  async exportRawData() {
+    try {
+      // Only export grouped check data
+      const groupedData = {};
+      if (globalThis.REPORT_CHECKS && Array.isArray(globalThis.REPORT_CHECKS)) {
+        for (const check of globalThis.REPORT_CHECKS) {
+          if (check.key && this.collectedData[check.key]) {
+            groupedData[check.key] = this.collectedData[check.key];
+          }
+        }
+      }
+      if (Object.keys(groupedData).length === 0) {
+        alert('No raw report data available to export.');
+        return;
+      }
+      const fileName = await this.generateFileName('json');
+      const rawFileName = fileName.replace(/\.json$/, '_raw.json');
+      const jsonString = JSON.stringify(groupedData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const downloadLink = document.createElement('a');
+      downloadLink.href = url;
+      downloadLink.download = rawFileName;
+      downloadLink.style.display = 'none';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(url);
+      console.log('Raw report data exported successfully!');
+    } catch (error) {
+      console.error('Error exporting raw data:', error);
+      alert('Error exporting raw data. Please try again.');
     }
   }
 
@@ -372,7 +401,7 @@ class ModularReportGenerator {
         }
       }
 
-      const fileName = this.generateFileName('pdf');
+  const fileName = await this.generateFileName('pdf');
       pdf.save(fileName);
     } catch (error) {
       console.error('Error exporting to PDF:', error);
@@ -388,7 +417,7 @@ class ModularReportGenerator {
       }
 
       // Generate filename using account info
-      const fileName = this.generateFileName('json');
+  const fileName = await this.generateFileName('json');
 
       // Create formatted JSON string
       const jsonString = JSON.stringify(this.collectedData, null, 2);
@@ -416,25 +445,37 @@ class ModularReportGenerator {
     }
   }
 
-  generateFileName(extension) {
-    // Get account name and tenant ID from report data
-    const accountName = (this.collectedData['Account Name'] || 'unknown-account')
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-    
-    const tenantId = (this.collectedData['Tenant ID'] || 'unknown-tenant')
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-    
-    // Generate date string
-    const date = new Date().toISOString().split('T')[0];
-    
-    return `cisco-spaces-os-ready-report-${accountName}-${tenantId}-${date}.${extension}`;
-  }
+  async generateFileName(extension) {
+  // Get accountName, tenantId, and username from sessionStorage
+  let rawAccountName = window.sessionStorage.getItem('customerName');
+  let rawTenantId = window.sessionStorage.getItem('tenantId');
+  console.log('[ReportGenerator] sessionStorage customerName:', rawAccountName);
+  console.log('[ReportGenerator] sessionStorage tenantId:', rawTenantId);
+    let accountName, tenantId;
+
+    // Use messaging to get account info
+    await new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: 'get_account_info' }, (response) => {
+        accountName = response?.customerName || 'unknown-account';
+        tenantId = response?.tenantId || 'unknown-tenant';
+        resolve();
+      });
+    });
+
+  // Always sanitize
+  accountName = globalThis.sanitizeFilenamePart(accountName);
+  tenantId = globalThis.sanitizeFilenamePart(tenantId);
+  console.log('[ReportGenerator] sanitized accountName:', accountName);
+  console.log('[ReportGenerator] sanitized tenantId:', tenantId);
+
+  // Generate date string
+  const date = new Date().toISOString().split('T')[0];
+  console.log('[ReportGenerator] filename date:', date);
+
+  const filename = `cisco-spaces-os-ready-report-${accountName}-${tenantId}-${date}.${extension}`;
+  console.log('[ReportGenerator] generated filename:', filename);
+  return filename;
+}
 }
 
 // Initialize the report generator when DOM is loaded
