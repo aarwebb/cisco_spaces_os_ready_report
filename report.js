@@ -211,7 +211,28 @@ class ModularReportGenerator {
     if (exportBtn) {
       exportBtn.replaceWith(exportBtn.cloneNode(true));
       const newExportBtn = document.getElementById('exportPdf');
-      newExportBtn.addEventListener('click', () => this.exportToPDF());
+      if (newExportBtn) {
+        // Size check: disable button if report is too large
+        const reportElement = document.getElementById('reportContainer');
+        let tooLarge = false;
+        if (reportElement) {
+          // Threshold: 20000px height (adjust as needed)
+          const reportHeight = reportElement.scrollHeight;
+          if (reportHeight > 20000) {
+            tooLarge = true;
+          }
+        }
+        if (tooLarge) {
+          newExportBtn.disabled = true;
+          newExportBtn.title = 'Report is too large to export as PDF. Please run fewer checks.';
+          newExportBtn.style.cursor = 'not-allowed';
+        } else {
+          newExportBtn.disabled = false;
+          newExportBtn.title = '';
+          newExportBtn.style.cursor = '';
+          newExportBtn.addEventListener('click', () => this.exportToPDF());
+        }
+      }
     }
 
     // Export JSON button
@@ -219,7 +240,9 @@ class ModularReportGenerator {
     if (exportJsonBtn) {
       exportJsonBtn.replaceWith(exportJsonBtn.cloneNode(true));
       const newExportJsonBtn = document.getElementById('exportJson');
-      newExportJsonBtn.addEventListener('click', () => this.exportToJSON());
+      if (newExportJsonBtn) {
+        newExportJsonBtn.addEventListener('click', () => this.exportToJSON());
+      }
     }
 
     // Export Raw Data button
@@ -227,7 +250,9 @@ class ModularReportGenerator {
     if (exportRawBtn) {
       exportRawBtn.replaceWith(exportRawBtn.cloneNode(true));
       const newExportRawBtn = document.getElementById('exportRaw');
-      newExportRawBtn.addEventListener('click', () => this.exportRawData());
+      if (newExportRawBtn) {
+        newExportRawBtn.addEventListener('click', () => this.exportRawData());
+      }
     }
   }
 
@@ -269,52 +294,21 @@ class ModularReportGenerator {
 
   async exportToPDF() {
     try {
-      // Debug: Check what's available
-      console.log('html2canvas available:', typeof html2canvas !== 'undefined');
-      console.log('window.jspdf available:', typeof window.jspdf !== 'undefined');
-      console.log('window.jsPDF available:', typeof window.jsPDF !== 'undefined');
-      
-      // Ensure html2canvas and jsPDF are loaded
-      if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
-        console.error('PDF libraries not loaded');
-        alert('PDF libraries not loaded. Please refresh the page and try again.');
+      // Capture the entire report container
+      const reportElement = document.getElementById('reportContainer');
+      if (!reportElement) {
+        alert('No report found for export.');
         return;
       }
-
-      // Hide buttons and other non-printable elements during PDF generation
-      const elementsToHide = document.querySelectorAll('.actions, .action-btn');
-      const originalDisplay = [];
-      elementsToHide.forEach((element, index) => {
-        originalDisplay[index] = element.style.display;
-        element.style.display = 'none';
-      });
-
-      // Capture the entire report container, including logo and content
-      const reportElement = document.querySelector('.report-container');
-      
-      // Add print styles to ensure proper formatting
-      const printStyles = document.createElement('style');
-      printStyles.innerHTML = `
-        .actions, .action-btn { display: none !important; }
-        .section { page-break-inside: avoid; margin-bottom: 16px; }
-        .subsection { page-break-inside: avoid; margin-bottom: 12px; }
-        table { page-break-inside: avoid; }
-        .report-table { page-break-inside: avoid; }
-        .report-container { background: white; box-shadow: none; }
-      `;
-      document.head.appendChild(printStyles);
-
-      // Get the exact dimensions we need
       const rect = reportElement.getBoundingClientRect();
       const computedStyle = window.getComputedStyle(reportElement);
       const elementWidth = parseInt(computedStyle.width);
       const elementHeight = reportElement.scrollHeight;
-
       const canvas = await html2canvas(reportElement, {
-        scale: 1,
+        scale: 1.5,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#fff',
         logging: false,
         imageTimeout: 0,
         width: elementWidth,
@@ -324,84 +318,59 @@ class ModularReportGenerator {
         windowWidth: elementWidth,
         windowHeight: elementHeight
       });
-
-      // Remove print styles and restore hidden elements
-      document.head.removeChild(printStyles);
-      elementsToHide.forEach((element, index) => {
-        element.style.display = originalDisplay[index];
-      });
-
-      // Convert canvas to compressed JPEG instead of PNG
-      const imgData = canvas.toDataURL('image/jpeg', 0.75); // JPEG with 75% quality for smaller size
+      const imgData = canvas.toDataURL('image/png');
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
-        compress: true // Enable PDF compression
+        compress: true
       });
-      
-      // Calculate dimensions with margins
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 15; // Increased margin for better layout
+      const margin = 15;
       const contentWidth = pageWidth - (margin * 2);
       const contentHeight = pageHeight - (margin * 2);
-      
-      // Calculate image dimensions to fit page width
       const imgWidth = contentWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // If the image is small enough to fit on one page, just add it directly
       if (imgHeight <= contentHeight) {
-        const compressedImgData = canvas.toDataURL('image/jpeg', 0.8);
-        pdf.addImage(compressedImgData, 'JPEG', margin, margin, imgWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
       } else {
-        // For larger images, use intelligent slicing that respects content boundaries
         let yPosition = margin;
         let remainingHeight = imgHeight;
         let sourceY = 0;
         let pageNumber = 1;
-        
         while (remainingHeight > 0) {
-          const availableHeight = pageNumber === 1 ? contentHeight : contentHeight;
+          const availableHeight = contentHeight;
           const sliceHeight = Math.min(remainingHeight, availableHeight);
-          
           if (pageNumber > 1) {
             pdf.addPage();
             yPosition = margin;
           }
-          
-          // Calculate the portion of the image to use for this page
           const sourceHeight = (sliceHeight * canvas.height) / imgHeight;
-          
-          // Create a temporary canvas for this slice to reduce memory usage
           const tempCanvas = document.createElement('canvas');
           tempCanvas.width = canvas.width;
           tempCanvas.height = Math.ceil(sourceHeight);
           const tempCtx = tempCanvas.getContext('2d');
-          
-          // Draw only the needed slice of the image
+          tempCtx.fillStyle = '#fff';
+          tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
           tempCtx.drawImage(
             canvas,
             0, Math.floor(sourceY), canvas.width, Math.ceil(sourceHeight),
             0, 0, tempCanvas.width, tempCanvas.height
           );
-          
-          // Convert slice to compressed JPEG
-          const sliceData = tempCanvas.toDataURL('image/jpeg', 0.8);
-          
-          // Add slice to PDF
-          pdf.addImage(sliceData, 'JPEG', margin, yPosition, imgWidth, sliceHeight);
-          
-          // Update for next iteration
+          const sliceData = tempCanvas.toDataURL('image/png');
+          pdf.addImage(sliceData, 'PNG', margin, yPosition, imgWidth, sliceHeight);
           remainingHeight -= sliceHeight;
           sourceY += sourceHeight;
           pageNumber++;
+          if (pageNumber > 100) {
+            alert('Report is extremely large and may not export reliably. Consider exporting in smaller sections.');
+            break;
+          }
         }
       }
-
-  const fileName = await this.generateFileName('pdf');
+      const fileName = await this.generateFileName('pdf');
       pdf.save(fileName);
     } catch (error) {
       console.error('Error exporting to PDF:', error);

@@ -343,20 +343,18 @@ class UIController {
 }
 
 function setProgressCircle(percent) {
-    const progressContainer = document.querySelector('.progress-container');
-    const fgCircle = document.querySelector('.circular-progress .fg');
-    const text = document.querySelector('.circular-progress .progress-text');
+    const fgCircle = document.querySelector('#circularProgress .fg');
+    const text = document.querySelector('#circularProgress .progress-text');
     const radius = 50;
     const circumference = 2 * Math.PI * radius;
     if (fgCircle) {
-        fgCircle.setAttribute('stroke-dasharray', circumference);
-        fgCircle.setAttribute('stroke-dashoffset', circumference - (percent / 100) * circumference);
+        const filled = (circumference * percent) / 100;
+        const unfilled = circumference - filled;
+        fgCircle.style.strokeDasharray = `${filled} ${unfilled}`;
+        fgCircle.style.strokeDashoffset = 0;
     }
     if (text) {
         text.textContent = `${percent}%`;
-    }
-    if (progressContainer) {
-        progressContainer.style.display = 'flex';
     }
 }
 
