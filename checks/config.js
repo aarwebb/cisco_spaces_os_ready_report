@@ -3,75 +3,64 @@
 
 console.log('REPORT DEBUG: config.js loaded');
 
-// To add a new check: add an object with key, name, checker, method, file, enabled, and report properties
+// To add a new check: add an object with key, name, checker, method, and hasReport
+// 'enabled' is now managed in chrome.storage, not here
+
 globalThis.CHECKS = {
   'account': {
     key: 'account',
     name: 'Account Information',
     checker: 'AccountChecker',
     method: 'execute',
-    file: 'account.js',
-    enabled: true,
-    hasReport: true,
-    reportOrder: 1,
-    description: 'Extracts account and organization information via API calls'
+    hasReport: true
   },
   'location': {
     key: 'location',
     name: 'Location Data',
     checker: 'LocationChecker',
-    method: 'execute', 
-    file: 'location.js',
-    enabled: true,
-    hasReport: true,
-    reportOrder: 2,
-    description: 'Collects location and facility data via API calls'
+    method: 'execute',
+    hasReport: true
   },
   'wireless': {
     key: 'wireless',
     name: 'Wireless Networks',
     checker: 'WirelessChecker',
     method: 'execute',
-    file: 'wireless.js', 
-    enabled: true,
-    hasReport: true,
-    reportOrder: 3,
-    description: 'Gathers WiFi and network configuration via API calls'
+    hasReport: true
   },
   'connectors': {
     key: 'connectors',
     name: 'Connector Status',
     checker: 'ConnectorChecker',
     method: 'execute',
-    file: 'connectors.js',
-    enabled: true,
-    hasReport: true,
-    reportOrder: 4,
-    description: 'Retrieves hardware connector and device information via API calls'
+    hasReport: true
   },
   'integrations': {
     key: 'integrations',
     name: 'Integrations',
     checker: 'IntegrationsChecker',
     method: 'execute',
-    file: 'integrations.js',
-    enabled: true,
-    hasReport: true,
-    reportOrder: 5,
-    description: 'Analyzes third-party integrations and external services via API calls'
+    hasReport: true
+  },
+  'iot': {
+    key: 'iot',
+    name: 'IoT Devices',
+    checker: 'IoTChecker',
+    method: 'execute',
+    hasReport: true
   }
 };
 
-// Convenience arrays for easier access
-globalThis.ENABLED_CHECKS = Object.values(globalThis.CHECKS).filter(check => check.enabled);
+// Only keep reportable checks
+// ENABLED_CHECKS logic removed; enabled status is managed in chrome.storage
+
 globalThis.REPORT_CHECKS = Object.values(globalThis.CHECKS).filter(check => check.hasReport);
 
 console.log('v2 Checks configuration loaded:');
 console.log('   Total checks:', Object.keys(globalThis.CHECKS).length);
-console.log('   Enabled checks:', globalThis.ENABLED_CHECKS.map(c => c.key));
 console.log('   Report checks:', globalThis.REPORT_CHECKS.map(c => c.key));
 
-// Metadata about this configuration
+// Metadata about this configuration (optional, for debugging/versioning)
 globalThis.CONFIG_METADATA = {
   version: '2.0.0',
   lastUpdated: '2025-08-26',

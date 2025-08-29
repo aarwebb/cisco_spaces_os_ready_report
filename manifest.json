@@ -33,6 +33,7 @@
         "checks/wireless.js",
         "checks/connectors.js",
         "checks/integrations.js",
+        "checks/iot.js",
         "content.js"
         ]
     }

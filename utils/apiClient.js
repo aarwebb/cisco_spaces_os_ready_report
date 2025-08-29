@@ -159,6 +159,57 @@ class SpacesApiClient {
     throw new Error(`All endpoints failed: ${endpoints.join(', ')}`);
   }
 
+  /**
+   * Fetch all paginated results from an endpoint.
+   * Handles ?page=X&pageSize=Y and combines all items.
+   * Supports multiple pagination formats.
+   * @param {string} endpoint - API endpoint path
+   * @param {Object} params - Query parameters
+   * @param {number} maxPageSize - Maximum allowed page size (default: 50)
+   * @param {Object} [options={}] - Optional: { totalKey: 'totalBeacons', itemsKey: 'items' }
+   * @returns {Promise<Array>} Combined results from all pages
+   */
+  async callPaginated(endpoint, params = {}, maxPageSize = 50, options = {}) {
+    let allResults = [];
+    let page = 1;
+    let totalPages = 1;
+    let totalCount = null;
+    const itemsKey = options.itemsKey || 'items';
+    const totalKey = options.totalKey;
+    let success = true;
+    let error = null;
+    let statusCode = null;
+    try {
+      do {
+        const query = { ...params, page, pageSize: maxPageSize };
+        const response = await this.call(endpoint, { params: query });
+        // Extract items (allow custom key)
+        const items = response[itemsKey] || response.data || [];
+        allResults.push(...items);
+        // Flexible pagination info
+        const pagination = response.pagination || {};
+        totalPages = pagination.totalPages || response.totalPages || 1;
+        if (totalKey && response[totalKey]) {
+          totalCount = response[totalKey];
+          totalPages = Math.ceil(totalCount / maxPageSize);
+        }
+        page++;
+      } while (page <= totalPages);
+    } catch (err) {
+      success = false;
+      error = err.message;
+      statusCode = err.statusCode;
+    }
+    return {
+      endpoint,
+      success,
+      data: allResults,
+      error,
+      statusCode,
+      timestamp: Date.now()
+    };
+  }
+
   buildUrl(endpoint, params = {}) {
     let url = `https://${this.domain}${endpoint}`;
 
