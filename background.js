@@ -174,6 +174,22 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 // Add any other privileged event handlers here
 
+// Clear all stored data on extension refresh/install except enabledChecks
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.local.get(['enabledChecks'], (items) => {
+    const enabledChecks = items.enabledChecks;
+    chrome.storage.local.clear(() => {
+      if (enabledChecks !== undefined) {
+        chrome.storage.local.set({ enabledChecks }, () => {
+          console.log('[background] Storage cleared on install/update, enabledChecks persisted');
+        });
+      } else {
+        console.log('[background] Storage cleared on install/update, no enabledChecks found to persist');
+      }
+    });
+  });
+});
+
 // Initialize message handlers
 const messageHandlers = new MessageHandlers();
 

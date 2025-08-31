@@ -23,9 +23,8 @@
         "matches": ["https://*.dnaspaces.io/*", "https://*.dnaspaces.eu/*", "https://*.dnaspaces.sg/*"],
         "js": [
         "constants.js",
-        "utils.js",
         "utils/apiClient.js",
-        "utils/checkUtils.js",
+  "utils/checkUtils.js",
         "utils/locationProcessor.js",
         "checks/config.js",
         "checks/account.js",
@@ -35,6 +34,7 @@
         "checks/integrations.js",
         "checks/iot.js",
         "checks/rightNow.js",
+        "analysis.js",
         "content.js"
         ]
     }

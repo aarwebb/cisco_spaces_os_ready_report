@@ -69,8 +69,8 @@ console.log('   Report checks:', globalThis.REPORT_CHECKS.map(c => c.key));
 
 // Metadata about this configuration (optional, for debugging/versioning)
 globalThis.CONFIG_METADATA = {
-  version: '2.0.0',
-  lastUpdated: '2025-08-26',
+  version: '2.1.0',
+  lastUpdated: '2025-08-31',
   approach: 'API-based',
   description: 'Configuration for Spaces OS Ready Report v2 with API-based data collection'
 };
