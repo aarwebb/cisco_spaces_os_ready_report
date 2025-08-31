@@ -401,8 +401,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (areaName === 'local' && changes['progress']) {
             const progress = changes['progress'].newValue;
             console.log('[popup] Debug: progress changed:', progress);
-            if (progress && typeof progress.completedCalls === 'number' && typeof progress.totalCalls === 'number') {
-                const percent = Math.round((progress.completedCalls / progress.totalCalls) * 100);
+            if (progress && typeof progress.completedProgressUnits === 'number' && typeof progress.totalProgressUnits === 'number' && progress.totalProgressUnits > 0) {
+                const percent = Math.round((progress.completedProgressUnits / progress.totalProgressUnits) * 100);
                 setProgressCircle(percent);
             }
         }

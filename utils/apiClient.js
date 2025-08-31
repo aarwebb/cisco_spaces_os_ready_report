@@ -24,7 +24,7 @@ class SpacesApiClient {
    * @param {number} options.timeout - Request timeout in ms (default: 30000)
    * @returns {Promise<Object>} API response data
    */
-  async call(endpoint, options = {}) {
+  async call(endpoint, options = {}, onProgress) {
     const {
       method = 'GET',
       body = null,
@@ -74,7 +74,7 @@ class SpacesApiClient {
 
       const data = await response.json();
       console.log(`✅ Success: ${endpoint} - Response keys:`, Object.keys(data));
-
+      if (typeof onProgress === 'function') onProgress(1);
       return data;
     } catch (error) {
       console.warn(`❌ API Error: ${endpoint} - ${error.message}`);
@@ -95,14 +95,14 @@ class SpacesApiClient {
    * @param {Array<Object>} requests - Array of request objects {endpoint, options}
    * @returns {Promise<Object>} Object with endpoint as key and result as value
    */
-  async callMultiple(requests) {
+  async callMultiple(requests, onProgress) {
     console.log(`🚀 Making ${requests.length} sequential API calls with delay`);
 
     const results = [];
     for (let i = 0; i < requests.length; i++) {
       const { endpoint, options = {} } = requests[i];
       try {
-        const data = await this.call(endpoint, options);
+        const data = await this.call(endpoint, options, onProgress);
         results.push({
           endpoint,
           success: true,
@@ -169,7 +169,7 @@ class SpacesApiClient {
    * @param {Object} [options={}] - Optional: { totalKey: 'totalBeacons', itemsKey: 'items' }
    * @returns {Promise<Array>} Combined results from all pages
    */
-  async callPaginated(endpoint, params = {}, maxPageSize = 50, options = {}) {
+  async callPaginated(endpoint, params = {}, maxPageSize = 50, options = {}, onProgress) {
     let allResults = [];
     let page = 1;
     let totalPages = 1;
@@ -182,7 +182,7 @@ class SpacesApiClient {
     try {
       do {
         const query = { ...params, page, pageSize: maxPageSize };
-        const response = await this.call(endpoint, { params: query });
+        const response = await this.call(endpoint, { params: query }, onProgress);
         // Extract items (allow custom key)
         const items = response[itemsKey] || response.data || [];
         allResults.push(...items);

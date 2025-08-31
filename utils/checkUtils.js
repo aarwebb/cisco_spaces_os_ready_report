@@ -1,11 +1,20 @@
 // Fetch username/email from login history endpoint
 globalThis.getUsername = async function getUsername(domain) {
-  // Read userName from browser sessionStorage for the current domain
+  // Try userName first, then supportUserName, else warn
   try {
     // This must run in the context of the page (content script)
-    const username = window.sessionStorage.getItem('userName');
-    console.log('[getUsername] Read from sessionStorage:', username);
-    return username || null;
+    let username = window.sessionStorage.getItem('userName');
+    if (username) {
+      console.log('[getUsername] Read userName from sessionStorage:', username);
+      return username;
+    }
+    username = window.sessionStorage.getItem('supportUserName');
+    if (username) {
+      console.log('[getUsername] Read supportUserName from sessionStorage:', username);
+      return username;
+    }
+    console.warn('❌ Could not retrieve username: neither userName nor supportUserName found in sessionStorage');
+    return null;
   } catch (error) {
     console.warn('❌ Could not retrieve username from sessionStorage:', error.message);
     return null;

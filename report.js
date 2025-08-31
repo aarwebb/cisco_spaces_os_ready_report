@@ -1,3 +1,11 @@
+// Utility: sanitizeFilenamePart
+globalThis.sanitizeFilenamePart = function(str) {
+    return (str || '')
+        .replace(/[^a-zA-Z0-9-_]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_+|_+$/g, '');
+};
+
 // Modular Report Generator
 // This file serves as the interface/orchestrator for generating reports
 // Individual check modules handle their own HTML generation and data processing
@@ -12,21 +20,17 @@ class ModularReportGenerator {
 
   async initialize() {
     this.reportContainer = document.getElementById('reportContainer') || document.getElementById('report-container');
-    
     // Initialize button event listeners
     this.initializeButtons();
-    
     try {
       const result = await chrome.storage.local.get(['reportData', 'collectionResults']);
       console.log(' Raw storage result:', result);
       console.log(' reportData:', result.reportData);
       console.log(' collectionResults:', result.collectionResults);
-      
       // Handle both v1 format (reportData) and v2 format (collectionResults)
       this.collectedData = result.reportData || result.collectionResults || {};
       console.log(' Final collectedData:', this.collectedData);
       console.log(' collectedData keys:', Object.keys(this.collectedData));
-      
       if (Object.keys(this.collectedData).length > 0) {
         await this.generateReport();
       } else {
@@ -42,7 +46,6 @@ class ModularReportGenerator {
   async generateReport() {
     console.log('Generating modular report...');
     console.log('Available data keys:', Object.keys(this.collectedData));
-    
     // Hide loading indicator
     const loadingIndicator = document.getElementById('loadingIndicator');
     if (loadingIndicator) {
@@ -54,23 +57,47 @@ class ModularReportGenerator {
       this.reportContainer.style.display = 'block';
     }
 
+    // --- Static Recommendations summary ---
+    const staticRecommendations = [
+      'Review all sections for warnings and errors.',
+      'Address any missing data or integration failures.',
+      'Ensure all locations and devices are mapped and reporting correctly.',
+      'Consult Cisco Spaces documentation for remediation steps.'
+    ];
+    const recommendationsSummaryHTML = `
+      <div class="section" id="report-recommendations-summary">
+        <h2 class="section-title">Overall Recommendations</h2>
+        <table class="summary-table" style="margin-bottom:16px;">
+          <tr><th>Recommendations</th></tr>
+          <tr><td>
+            <ul class="recommendations-list">
+              ${staticRecommendations.map(rec => `<li>${rec}</li>`).join('')}
+            </ul>
+          </td></tr>
+        </table>
+      </div>
+    `;
+
     // Generate dynamic sections from enabled checks
     const sectionsHTML = await this.generateSections();
-    
+
     // Generate metadata footer
     const metadataHTML = this.generateMetadata();
-    
-    // Assemble complete report
-    const reportHTML = this.assembleCompleteReport(sectionsHTML, metadataHTML);
-    
+
+    // Assemble complete report (static recommendations first)
+    const reportHTML = this.assembleCompleteReport(
+      recommendationsSummaryHTML + sectionsHTML,
+      metadataHTML
+    );
+
     // Update the report container
     if (this.reportContainer) {
       this.reportContainer.innerHTML = reportHTML;
     }
-    
+
     // Re-initialize buttons after HTML update
     this.initializeButtons();
-    
+
     console.log('Modular report generation complete');
   }
 
@@ -78,6 +105,7 @@ class ModularReportGenerator {
   let reportGenerated = new Date().toLocaleString();
   let executionTime = this.collectedData['Execution Time'] || 'N/A';
   let domain = this.collectedData['Domain'] || 'N/A';
+  const version = (globalThis.CONFIG_METADATA && globalThis.CONFIG_METADATA.version) ? globalThis.CONFIG_METADATA.version : 'N/A';
 
   // Try to extract domain from account data if available
   if (
@@ -96,7 +124,7 @@ class ModularReportGenerator {
         <div>Generated: ${reportGenerated}</div>
         <div>Execution Time: ${executionTime}</div>
         <div>Domain: ${domain}</div>
-        <div>Version: v2.0.0 (API-based)</div>
+  <div>Version: v${version} (API-based)</div>
       </div>
     </div>
   `;
@@ -104,57 +132,40 @@ class ModularReportGenerator {
 
   async generateSections() {
     const sections = [];
-    // Debug: Log the full REPORT_CHECKS array
-    console.log('DEBUG: REPORT_CHECKS:', globalThis.REPORT_CHECKS);
-    // Get all checks with reports
+    // Use modular analysis and reporting
     const allChecksWithReports = globalThis.REPORT_CHECKS
-      ? globalThis.REPORT_CHECKS
-          .filter(check => check.hasReport)
-          .sort((a, b) => a.reportOrder - b.reportOrder)
+      ? globalThis.REPORT_CHECKS.filter(check => check.hasReport)
       : [];
-    console.log('DEBUG: All possible checks with reports:', allChecksWithReports.map(c => c.name));
-    console.log('DEBUG: Available collected data keys:', Object.keys(this.collectedData));
     for (const checkConfig of allChecksWithReports) {
       try {
-        // Debug: Log checker module presence
-        console.log(`DEBUG: Checker for ${checkConfig.key}:`, checkConfig.checker, globalThis[checkConfig.checker]);
-        const checker = globalThis[checkConfig.checker];
-        if (checker && checker.reportModule) {
-          console.log(`DEBUG: Generating section for ${checkConfig.key}...`);
-          // Get the data for this specific check - v2 format has nested structure
-          const checkData = this.getDataForCheck(checkConfig.key);
-          console.log(`DEBUG: Data for ${checkConfig.key}:`, checkData);
-          console.log(`DEBUG: Data structure for ${checkConfig.key}:`, JSON.stringify(checkData, null, 2));
-          // Debug: Log key matching
-          if (!this.collectedData.hasOwnProperty(checkConfig.key)) {
-            console.warn(`DEBUG: collectedData does not have key '${checkConfig.key}'`);
-          }
-          // Generate section if checkData is a non-empty object (endpoint results)
-          if (checkData && typeof checkData === 'object' && Object.keys(checkData).length > 0) {
-            const sectionHTML = checker.reportModule.generateHTML(checkData);
-            sections.push(sectionHTML);
-            console.log(`DEBUG: Section generated for ${checkConfig.key}`);
-          } else if (checkData && checkData.error) {
-            // Show error section for failed checks
-            sections.push(`
-              <div class="section">
-                <h2 class="section-title">${checkConfig.name}</h2>
-                <p>Data collection failed: ${checkData.error || 'Unknown error'}</p>
-              </div>
-            `);
-            console.log(`DEBUG: Error section generated for ${checkConfig.key}`);
-          } else {
-            console.log(`DEBUG: Skipping ${checkConfig.key} - no data available`);
-          }
-        } else {
-          console.warn(`DEBUG: Missing report module for ${checkConfig.checker}`);
-        }
+        const checkerClass = globalThis[checkConfig.checker];
+        if (!checkerClass || !this.collectedData[checkConfig.key]) continue;
+
+        // Always use parsedData for processedData
+        const processedData = this.collectedData[checkConfig.key].parsedData;
+        const analysisResults = this.collectedData[`${checkConfig.key}_analysis`] || (
+          window.AnalysisModules && window.AnalysisModules[checkConfig.key]
+            ? window.AnalysisModules[checkConfig.key](processedData)
+            : { recommendations: [], indicators: {} }
+        );
+
+        // Targeted debug logging before HTML generation
+        console.log('[REPORT DEBUG] Section:', checkConfig.key);
+        console.log('[REPORT DEBUG] processedData:', processedData);
+        console.log('[REPORT DEBUG] analysisResults:', analysisResults);
+        console.log('[REPORT DEBUG] checkerClass:', checkerClass);
+
+        // Generate HTML
+        const html = checkerClass.reportModule && checkerClass.reportModule.generateHTML
+          ? checkerClass.reportModule.generateHTML(processedData, analysisResults)
+          : `<div class="section"><h2>${checkConfig.name}</h2><pre>${JSON.stringify(processedData, null, 2)}</pre></div>`;
+        sections.push(html);
       } catch (error) {
-        console.error(`DEBUG: Error generating report section for ${checkConfig.key}:`, error);
-        // Add error section instead of failing completely
+        // Targeted error logging
+        console.error('[REPORT ERROR] Exception in section:', checkConfig.key, error);
         sections.push(`
           <div class="section">
-            <h2 class="section-title"> ${checkConfig.name}</h2>
+            <h2 class="section-title">${checkConfig.name}</h2>
             <p>Error generating this section: ${error.message}</p>
           </div>
         `);
@@ -328,50 +339,64 @@ class ModularReportGenerator {
       });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 15;
-      const contentWidth = pageWidth - (margin * 2);
-      const contentHeight = pageHeight - (margin * 2);
-      const imgWidth = contentWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      if (imgHeight <= contentHeight) {
-        pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
-      } else {
-        let yPosition = margin;
-        let remainingHeight = imgHeight;
-        let sourceY = 0;
-        let pageNumber = 1;
-        while (remainingHeight > 0) {
-          const availableHeight = contentHeight;
-          const sliceHeight = Math.min(remainingHeight, availableHeight);
-          if (pageNumber > 1) {
-            pdf.addPage();
-            yPosition = margin;
-          }
-          const sourceHeight = (sliceHeight * canvas.height) / imgHeight;
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = canvas.width;
-          tempCanvas.height = Math.ceil(sourceHeight);
-          const tempCtx = tempCanvas.getContext('2d');
-          tempCtx.fillStyle = '#fff';
-          tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-          tempCtx.drawImage(
-            canvas,
-            0, Math.floor(sourceY), canvas.width, Math.ceil(sourceHeight),
-            0, 0, tempCanvas.width, tempCanvas.height
-          );
-          const sliceData = tempCanvas.toDataURL('image/png');
-          pdf.addImage(sliceData, 'PNG', margin, yPosition, imgWidth, sliceHeight);
-          remainingHeight -= sliceHeight;
-          sourceY += sourceHeight;
-          pageNumber++;
-          if (pageNumber > 100) {
-            alert('Report is extremely large and may not export reliably. Consider exporting in smaller sections.');
-            break;
+      const margin = 0;
+      const contentWidth = 180;
+      const contentHeight = pageHeight;
+      // --- Add header logo ---
+      const logo = new window.Image();
+      logo.src = 'OS_Ready_Headline.png';
+      logo.onload = () => {
+        // Grow logo width by 10% and center align
+        const logoWidth = contentWidth * .95;
+        const logoHeight = logoWidth * (211 / 928); // keep aspect ratio
+        const logoX = ((pageWidth - logoWidth) / 2) - 3;
+        const logoY = margin;
+        // --- Center align report content image below logo ---
+        let imgWidth = contentWidth;
+        let imgHeight = (canvas.height * imgWidth) / canvas.width;
+        let contentX = (pageWidth - imgWidth) / 2;
+        let contentY = logoY + logoHeight + 5; // 5mm spacing below logo
+        pdf.addImage(logo, 'PNG', logoX, logoY, logoWidth, logoHeight);
+        if (imgHeight <= (contentHeight - logoHeight - 5)) {
+          pdf.addImage(imgData, 'PNG', contentX, contentY, imgWidth, imgHeight);
+        } else {
+          let yPosition = contentY;
+          let remainingHeight = imgHeight;
+          let sourceY = 0;
+          let pageNumber = 1;
+          while (remainingHeight > 0) {
+            const availableHeight = contentHeight - logoHeight - 5;
+            const sliceHeight = Math.min(remainingHeight, availableHeight);
+            if (pageNumber > 1) {
+              pdf.addPage();
+              yPosition = margin;
+            }
+            const sourceHeight = (sliceHeight * canvas.height) / imgHeight;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width;
+            tempCanvas.height = Math.ceil(sourceHeight);
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.fillStyle = '#fff';
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tempCtx.drawImage(
+              canvas,
+              0, Math.floor(sourceY), canvas.width, Math.ceil(sourceHeight),
+              0, 0, tempCanvas.width, tempCanvas.height
+            );
+            const sliceData = tempCanvas.toDataURL('image/png');
+            pdf.addImage(sliceData, 'PNG', contentX, yPosition, imgWidth, sliceHeight);
+            remainingHeight -= sliceHeight;
+            sourceY += sourceHeight;
+            pageNumber++;
+            if (pageNumber > 100) {
+              alert('Report is extremely large and may not export reliably. Consider exporting in smaller sections.');
+              break;
+            }
           }
         }
-      }
-      const fileName = await this.generateFileName('pdf');
-      pdf.save(fileName);
+        const fileName = this.generateFileName('pdf');
+        Promise.resolve(fileName).then(name => pdf.save(name));
+      };
     } catch (error) {
       console.error('Error exporting to PDF:', error);
       alert('Error exporting to PDF. Please try again.');
@@ -450,6 +475,11 @@ class ModularReportGenerator {
 // Initialize the report generator when DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('REPORT DEBUG: DOM loaded, initializing report generator');
+  // Dynamically set version badge from config.js metadata
+  const versionBadge = document.querySelector('.version-badge');
+  if (versionBadge && globalThis.CONFIG_METADATA && globalThis.CONFIG_METADATA.version) {
+    versionBadge.textContent = `v${globalThis.CONFIG_METADATA.version} API`;
+  }
   try {
     const reportGenerator = new ModularReportGenerator();
     console.log('REPORT DEBUG: Created ModularReportGenerator instance');

@@ -1,8 +1,3 @@
-// Node.js/CommonJS export
-
-
-// LocationProcessor class for reading locationMap items from IndexedDB
-
 // LocationProcessor class for reading locationMap items from IndexedDB
 class LocationProcessor {
 	/**

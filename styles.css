@@ -1,7 +1,7 @@
 /* ==========================================================================
-   Cisco Spaces OS Ready Report - Shared Styles
-   Based on Cisco Spaces Dashboard 2.0 Design System
-   ========================================================================== */
+  Cisco Spaces OS Ready Report - Shared Styles
+  Based on Cisco Spaces Dashboard 2.0 Design System
+  ========================================================================== */
 
 /* ==========================================================================
    Variables and Base Styles
@@ -30,6 +30,7 @@
   --color-warning-bg: #FFF3CD;
   --color-warning-text: #856404;
   --color-info-bg: #E8F2F7; /* Light blue background to match new primary */
+  --color-alert-info-bg: #D6EAF8; /* Slightly deeper blue for info alerts */
   --color-info-text: #1C3D59; /* Dark blue text */
   --color-info-border: #B8D4E3; /* Blue border */
   
@@ -69,6 +70,15 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 }
+
+/* ==========================================================================
+   Alerting Styles
+   ========================================================================== */
+.report-table td.row-warning { background: var(--color-warning-bg) !important; color: var(--color-warning-text) !important; }
+.report-table td.row-info { background: var(--color-alert-info-bg) !important; color: var(--color-info-text) !important; }
+.report-table td.row-error { background: var(--color-error-bg) !important; color: var(--color-error-text) !important; }
+
+
 
 /* ==========================================================================
    Base Typography and Layout
@@ -458,6 +468,13 @@ button:disabled:hover,
 /* ==========================================================================
    Tables
    ========================================================================== */
+/* Secondary table header for gray background */
+
+.report-table th.th-secondary {
+  background: #F0F0F0 !important;
+  color: var(--color-text-secondary) !important;
+  font-weight: var(--font-weight-semibold);
+}
 
 .report-table {
   border-collapse: collapse;
@@ -476,23 +493,56 @@ button:disabled:hover,
   text-align: left;
 }
 
+/* Wireless Controllers Table column widths */
+
 .report-table th {
   background: var(--color-primary);
   color: var(--color-card);
   font-weight: var(--font-weight-semibold);
-  width: 25%;
   font-size: var(--font-size-sm);
 }
 
 .report-table td {
-  width: 75%;
   color: var(--color-text-primary);
   background: var(--color-card);
 }
 
+/* Only override width for custom tables */
+/* Wireless Controllers Table column widths - CLEANED UP */
+.report-table.wireless-controllers th:nth-child(1),
+.report-table.wireless-controllers td:nth-child(1) {
+  width: 24%; /* Name */
+}
+.report-table.wireless-controllers th:nth-child(2),
+.report-table.wireless-controllers td:nth-child(2) {
+  width: 13%; /* Status */
+}
+.report-table.wireless-controllers th:nth-child(3),
+.report-table.wireless-controllers td:nth-child(3) {
+  width: 13%; /* Reachable */
+}
+.report-table.wireless-controllers th:nth-child(4),
+.report-table.wireless-controllers td:nth-child(4) {
+  width: 13%; /* Type */
+}
+.report-table.wireless-controllers th:nth-child(5),
+.report-table.wireless-controllers td:nth-child(5) {
+  width: 13%; /* Version */
+}
+.report-table.wireless-controllers th:nth-child(6),
+.report-table.wireless-controllers td:nth-child(6) {
+  width: 24%; /* APs */
+}
+
+.report-table td.value-col {
+  width: 72%;
+}
+
+/* Ensure cell-specific highlights override row background */
 .report-table tr:nth-child(even) td {
   background: var(--color-background);
 }
+
 
 .report-table tr:hover td {
   background: var(--color-info-bg);
@@ -500,10 +550,9 @@ button:disabled:hover,
 }
 
 /* ==========================================================================
-   Messages and Alerts
+   Messages and Alerts (Combined)
    ========================================================================== */
-
-.message {
+.message, .error-message {
   padding: var(--spacing-md) var(--spacing-lg);
   border-radius: var(--radius-sm);
   margin: var(--spacing-lg);
@@ -511,34 +560,21 @@ button:disabled:hover,
   display: none;
   font-weight: var(--font-weight-medium);
 }
-
 .message.success {
   background: var(--color-success-bg);
   color: var(--color-success-text);
   border: 1px solid var(--color-success-border);
 }
-
-.message.error,
-.error-message {
+.message.error, .error-message {
   background: var(--color-error-bg);
   color: var(--color-error-text);
   border: 1px solid var(--color-error-border);
 }
-
-.error-message {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--radius-sm);
-  margin: var(--spacing-lg);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-
 .message.info {
   background: var(--color-info-bg);
   color: var(--color-info-text);
   border: 1px solid var(--color-info-border);
 }
-
 #errorContainer {
   background: var(--color-error-bg);
   color: var(--color-error-text);
@@ -548,7 +584,6 @@ button:disabled:hover,
   display: none;
   text-align: center;
   font-weight: var(--font-weight-medium);
-  border: 1px solid var(--color-error-border);
 }
 
 /* ==========================================================================
@@ -963,11 +998,15 @@ input:checked + .toggle-slider:before {
 }
 
 /* ==========================================================================
-   Print Styles
+   Print Styles (Combined)
    ========================================================================== */
-
 @media print {
-  .actions { display: none; }
+  .actions,
+  .action-btn,
+  .btn,
+  button {
+    display: none !important;
+  }
   .container {
     box-shadow: none;
     max-width: none;
@@ -983,11 +1022,16 @@ input:checked + .toggle-slider:before {
   }
   .section {
     page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: var(--spacing-lg);
     background: var(--color-card);
     box-shadow: none;
     border: 1px solid var(--color-border);
   }
   .subsection {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: var(--spacing-md);
     background: var(--color-background);
     border: 1px solid var(--color-border);
   }
@@ -996,7 +1040,8 @@ input:checked + .toggle-slider:before {
     break-after: avoid;
     color: var(--color-primary) !important;
   }
-  .report-table {
+  .report-table,
+  table {
     page-break-inside: avoid;
     break-inside: avoid;
     box-shadow: none;
@@ -1573,4 +1618,44 @@ input:checked + .toggle-slider:before {
     align-self: stretch;
     justify-content: center;
   }
+}
+
+/* ==========================================================================
+   Alert Summary Styles
+   ========================================================================== */
+
+.alert-summary-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 8px;
+}
+
+.alert-summary-icon img {
+  height: 20px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.alert-summary-count {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.summary-table {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.summary-table th {
+  text-align: left;
+}
+
+.report-table tr.row-warning td { background: var(--color-warning-bg); color: var(--color-warning-text); }
+.report-table tr.row-info td { background: var(--color-info-bg); color: var(--color-info-text); }
+.report-table tr.row-good td { background: var(--color-success-bg); color: var(--color-success-text); }
+
+.bold-text {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
 }
